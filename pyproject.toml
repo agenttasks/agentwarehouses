@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agentwarehouses"
-version = "0.1.0"
-description = "Scrapy sitemap crawler for llms.txt documentation pages"
+version = "0.2.0"
+description = "Scrapy sitemap crawler for llms.txt documentation pages with Pydantic data models"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
@@ -17,11 +17,20 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+models = [
+    "pydantic>=2.9,<4.0",
+]
 dev = [
     "ruff>=0.8",
     "mypy>=1.13",
     "pytest>=8.0",
+    "pydantic>=2.9,<4.0",
 ]
+
+[tool.release-please]
+release-type = "python"
+package-name = "agentwarehouses"
+bump-minor-pre-major = true
 
 [project.entry-points."scrapy"]
 settings = "agentwarehouses.settings"
