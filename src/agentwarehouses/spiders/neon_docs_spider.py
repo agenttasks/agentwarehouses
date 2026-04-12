@@ -198,10 +198,9 @@ class NeonDocsSpider(scrapy.Spider):
         item["body_markdown"] = text
         item["content_length"] = len(text)
         item["crawled_at"] = datetime.now(timezone.utc).isoformat()
-        # Extra fields for Neon guide classification
-        item.setdefault("source", source)
-        item.setdefault("content_type", content_type)
-        item.setdefault("content_hash", content_hash)
+        item["source"] = source
+        item["content_type"] = content_type
+        item["content_hash"] = content_hash
 
         yield item
 
