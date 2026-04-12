@@ -1,0 +1,124 @@
+.DEFAULT_GOAL := help
+SHELL := /bin/bash
+PYTHON := python
+UV := uv
+NPROC := $(shell nproc 2>/dev/null || echo 4)
+
+# ──────────────────────────────────────────────
+# Install
+# ──────────────────────────────────────────────
+
+.PHONY: install
+install: ## Install package with core deps
+	$(UV) pip install --system -e .
+
+.PHONY: install-dev
+install-dev: ## Install package with dev + models deps
+	$(UV) pip install --system -e ".[dev,models]"
+
+.PHONY: install-ci
+install-ci: ## Install for CI (no editable, stricter)
+	$(UV) pip install --system ".[dev,models]"
+
+# ──────────────────────────────────────────────
+# Test
+# ──────────────────────────────────────────────
+
+.PHONY: test
+test: ## Run tests with parallel workers (auto-detect CPUs)
+	$(PYTHON) -m pytest tests/ -n auto --timeout=30 -q
+
+.PHONY: test-cov
+test-cov: ## Run tests with coverage report (fail under 90%)
+	$(PYTHON) -m pytest tests/ -n auto --timeout=30 \
+		--cov=agentwarehouses --cov-report=term-missing --cov-fail-under=90
+
+.PHONY: test-unit
+test-unit: ## Run unit tests only
+	$(PYTHON) -m pytest tests/ -m unit -n auto -q
+
+.PHONY: test-models
+test-models: ## Run Pydantic model tests only
+	$(PYTHON) -m pytest tests/ -m models -n auto -q
+
+.PHONY: test-integration
+test-integration: ## Run integration tests only
+	$(PYTHON) -m pytest tests/ -m integration -q
+
+.PHONY: test-evals
+test-evals: ## Run eval schema validation tests
+	$(PYTHON) -m pytest tests/ -m evals -q
+
+# ──────────────────────────────────────────────
+# Lint & Type Check
+# ──────────────────────────────────────────────
+
+.PHONY: lint
+lint: ## Run ruff linter
+	ruff check src/ tests/ scripts/
+
+.PHONY: lint-fix
+lint-fix: ## Auto-fix lint issues
+	ruff check --fix src/ tests/ scripts/
+
+.PHONY: typecheck
+typecheck: ## Run mypy strict type checking
+	mypy src/agentwarehouses/
+
+# ──────────────────────────────────────────────
+# Crawl
+# ──────────────────────────────────────────────
+
+.PHONY: crawl
+crawl: ## Run the llmstxt spider
+	scrapy crawl llmstxt
+
+.PHONY: crawl-audit
+crawl-audit: ## Audit crawl output for quality
+	@$(PYTHON) -c "\
+	import orjson; \
+	from pathlib import Path; \
+	data = Path('output/docs.jsonl').read_bytes().strip().split(b'\n'); \
+	pages = [orjson.loads(l) for l in data]; \
+	urls = [p['url'] for p in pages]; \
+	print(f'Pages: {len(pages)}'); \
+	print(f'Unique: {len(set(urls))}'); \
+	print(f'Dupes: {len(urls) - len(set(urls))}'); \
+	empty = sum(1 for p in pages if not p.get('title')); \
+	short = sum(1 for p in pages if len(p.get('body_markdown','')) < 100); \
+	print(f'Empty titles: {empty}'); \
+	print(f'Short bodies: {short}'); \
+	print('PASS' if not empty and not short and len(urls) == len(set(urls)) else 'FAIL')"
+
+# ──────────────────────────────────────────────
+# Generate
+# ──────────────────────────────────────────────
+
+.PHONY: generate-skills
+generate-skills: ## Generate 36 CRUD skills from resource profiles
+	$(PYTHON) scripts/generate_crud_skills.py
+
+# ──────────────────────────────────────────────
+# CI
+# ──────────────────────────────────────────────
+
+.PHONY: ci
+ci: lint test-cov ## Run full CI pipeline (lint + test with coverage)
+
+# ──────────────────────────────────────────────
+# Clean
+# ──────────────────────────────────────────────
+
+.PHONY: clean
+clean: ## Remove build artifacts and caches
+	rm -rf build/ dist/ *.egg-info .pytest_cache .mypy_cache .ruff_cache
+	find src tests -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+
+# ──────────────────────────────────────────────
+# Help
+# ──────────────────────────────────────────────
+
+.PHONY: help
+help: ## Show this help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-18s\033[0m %s\n", $$1, $$2}'
