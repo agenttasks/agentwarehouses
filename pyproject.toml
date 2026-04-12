@@ -20,7 +20,26 @@ dependencies = [
 models = [
     "pydantic>=2.9,<4.0",
 ]
+
+# ── CPU-optimized warehouse (low latency, low memory) ──────────
+# fastembed uses ONNX Runtime (~50 MB) instead of PyTorch (~2 GB)
+# for embedding generation. Same all-MiniLM-L6-v2 model, 50x smaller.
 warehouse = [
+    "pydantic>=2.9,<4.0",
+    "psycopg[binary]>=3.2,<4.0",
+    "sqlmodel>=0.0.22,<1.0",
+    "fastembed>=0.7,<1.0",
+    "onnxruntime>=1.22,<2.0",
+    "networkx>=3.4,<4.0",
+    "httpx>=0.28,<1.0",
+    "mempalace>=3.0,<4.0",
+    "numpy>=1.26,<3.0",
+]
+
+# ── GPU tier: full torch + sentence-transformers + dspy ─────────
+# Only install when you need CUDA-accelerated training, DSPy LLM
+# extraction, or torch-dependent model pipelines.
+gpu = [
     "pydantic>=2.9,<4.0",
     "psycopg[binary]>=3.2,<4.0",
     "sqlmodel>=0.0.22,<1.0",
@@ -30,6 +49,8 @@ warehouse = [
     "httpx>=0.28,<1.0",
     "mempalace>=3.0,<4.0",
 ]
+
+# ── Dev + test tooling (CPU-fast, no heavy ML deps) ─────────────
 dev = [
     "ruff>=0.8",
     "mypy>=1.13",
@@ -37,6 +58,7 @@ dev = [
     "pytest-cov>=7.0",
     "pytest-xdist>=3.5",
     "pytest-timeout>=2.3",
+    "pytest-benchmark>=5.1",
     "pydantic>=2.9,<4.0",
     "pre-commit>=4.0",
 ]

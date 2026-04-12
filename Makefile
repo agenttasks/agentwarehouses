@@ -5,20 +5,42 @@ UV := uv
 NPROC := $(shell nproc 2>/dev/null || echo 4)
 
 # ──────────────────────────────────────────────
-# Install
+# Install — tiered for CPU/GPU/dev profiles
 # ──────────────────────────────────────────────
+# Tiers:
+#   install       → core crawl deps only (scrapy, orjson, rbloom)
+#   install-dev   → core + warehouse-CPU + test tooling (fastembed/ONNX, no torch)
+#   install-gpu   → full torch + sentence-transformers + dspy (CUDA workloads)
+#   install-node  → Node.js deps (Cube.js, Neon, Zod)
+#   install-all   → everything (Python CPU + Node.js)
+#
+# CPU profile uses fastembed (ONNX Runtime, ~50 MB) instead of
+# sentence-transformers + torch (~2 GB). Same all-MiniLM-L6-v2 model.
+# See: https://github.com/qdrant/fastembed
 
 .PHONY: install
-install: ## Install package with core deps
-	$(UV) pip install --system -e .
+install: ## Install core crawl deps (scrapy, orjson, rbloom)
+	$(UV) pip install --system -e ".[models]"
 
 .PHONY: install-dev
-install-dev: ## Install package with dev + models deps
-	$(UV) pip install --system -e ".[dev,models]"
+install-dev: ## Install CPU warehouse + dev tooling (fast, no torch)
+	$(UV) pip install --system -e ".[dev,models,warehouse]"
+	@command -v npm >/dev/null && npm install --prefer-offline --no-audit || true
+
+.PHONY: install-gpu
+install-gpu: ## Install full GPU tier (torch + sentence-transformers + dspy)
+	$(UV) pip install --system -e ".[dev,models,gpu]"
+
+.PHONY: install-node
+install-node: ## Install Node.js deps (Cube.js, Neon, Zod, TypeScript)
+	npm install --prefer-offline --no-audit
+
+.PHONY: install-all
+install-all: install-dev install-node ## Install everything (Python CPU + Node.js)
 
 .PHONY: install-ci
-install-ci: ## Install for CI (no editable, stricter)
-	$(UV) pip install --system ".[dev,models]"
+install-ci: ## Install for CI (no editable, CPU-only, no torch)
+	$(UV) pip install --system ".[dev,models,warehouse]"
 
 # ──────────────────────────────────────────────
 # Test
