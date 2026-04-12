@@ -210,23 +210,27 @@ Exit codes:
   1  Client error
   2  Database or API error""",
     )
-    p.add_argument("--database-url", default=os.environ.get("DATABASE_URL"),
-                    help="Neon Postgres connection URL (default: $DATABASE_URL)")
-    p.add_argument("--hf-token", default=os.environ.get("HF_TOKEN"),
-                    help="HuggingFace API token (default: $HF_TOKEN)")
-    p.add_argument("--model", default=DEFAULT_MODEL,
-                    help=f"Embedding model (default: {DEFAULT_MODEL})")
-    p.add_argument("--source", choices=["api", "local"], default="api",
-                    help="Embedding source: api (HuggingFace Inference API) or local (sentence-transformers)")
+    p.add_argument(
+        "--database-url",
+        default=os.environ.get("DATABASE_URL"),
+        help="Neon Postgres connection URL (default: $DATABASE_URL)",
+    )
+    p.add_argument("--hf-token", default=os.environ.get("HF_TOKEN"), help="HuggingFace API token (default: $HF_TOKEN)")
+    p.add_argument("--model", default=DEFAULT_MODEL, help=f"Embedding model (default: {DEFAULT_MODEL})")
+    p.add_argument(
+        "--source",
+        choices=["api", "local"],
+        default="api",
+        help="Embedding source: api (HuggingFace Inference API) or local (sentence-transformers)",
+    )
 
     action = p.add_mutually_exclusive_group(required=True)
-    action.add_argument("--embed-all", action="store_true",
-                         help="Generate and store embeddings for all tools")
+    action.add_argument("--embed-all", action="store_true", help="Generate and store embeddings for all tools")
     action.add_argument("--embed-tool", help="Generate embedding for a single tool by name")
-    action.add_argument("--embed-uda", action="store_true",
-                         help="Embed Netflix UDA schema files from assets/uda-intro-blog/")
-    action.add_argument("--list", action="store_true",
-                         help="List all tools in the registry (no DB needed)")
+    action.add_argument(
+        "--embed-uda", action="store_true", help="Embed Netflix UDA schema files from assets/uda-intro-blog/"
+    )
+    action.add_argument("--list", action="store_true", help="List all tools in the registry (no DB needed)")
 
     p.add_argument("--output", help="Write result to file instead of stdout")
     return p
@@ -238,7 +242,8 @@ def upsert_tool(conn, tool: dict, embedding: list[float]) -> None:
     formatted = f"[{','.join(str(x) for x in embedding)}]"
 
     with conn.cursor() as cur:
-        cur.execute("""
+        cur.execute(
+            """
             INSERT INTO graphql_tools (tool_name, description, parameters, category, script_path, full_text, embedding, updated_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
             ON CONFLICT (tool_name) DO UPDATE SET
@@ -249,8 +254,17 @@ def upsert_tool(conn, tool: dict, embedding: list[float]) -> None:
                 full_text = EXCLUDED.full_text,
                 embedding = EXCLUDED.embedding,
                 updated_at = CURRENT_TIMESTAMP
-        """, (tool["tool_name"], tool["description"], tool.get("parameters"),
-              tool.get("category"), tool.get("script_path"), full_text, formatted))
+        """,
+            (
+                tool["tool_name"],
+                tool["description"],
+                tool.get("parameters"),
+                tool.get("category"),
+                tool.get("script_path"),
+                full_text,
+                formatted,
+            ),
+        )
     conn.commit()
 
 
@@ -292,13 +306,20 @@ def embed_uda_schemas(conn, model: str, token: str | None, source: str) -> list[
         formatted = f"[{','.join(str(x) for x in embedding)}]"
 
         with conn.cursor() as cur:
-            cur.execute("""
+            cur.execute(
+                """
                 INSERT INTO uda_schema_registry (schema_name, schema_type, content, uda_uri, embedding)
                 VALUES (%s, %s, %s, %s, %s)
                 ON CONFLICT DO NOTHING
-            """, (filename, schema_type, content,
-                  f"https://rdf.netflix.net/onto/onepiece#{filename.split('.')[0]}",
-                  formatted))
+            """,
+                (
+                    filename,
+                    schema_type,
+                    content,
+                    f"https://rdf.netflix.net/onto/onepiece#{filename.split('.')[0]}",
+                    formatted,
+                ),
+            )
         conn.commit()
         results.append({"file": filename, "type": schema_type, "dimensions": len(embedding)})
 
@@ -310,12 +331,15 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.list:
-        output = json.dumps({
-            "tools": [{k: v for k, v in t.items()} for t in TOOL_REGISTRY],
-            "count": len(TOOL_REGISTRY),
-            "model": args.model,
-            "dimensions": EMBEDDING_DIM,
-        }, indent=2)
+        output = json.dumps(
+            {
+                "tools": [{k: v for k, v in t.items()} for t in TOOL_REGISTRY],
+                "count": len(TOOL_REGISTRY),
+                "model": args.model,
+                "dimensions": EMBEDDING_DIM,
+            },
+            indent=2,
+        )
         if args.output:
             Path(args.output).write_text(output + "\n")
         else:
@@ -349,13 +373,12 @@ def main() -> None:
                     print("  Batch failed, falling back to individual requests...", file=sys.stderr)
                     embeddings = []
                     for i, text in enumerate(texts):
-                        print(f"  [{i+1}/{len(texts)}] {TOOL_REGISTRY[i]['tool_name']}...", file=sys.stderr)
+                        print(f"  [{i + 1}/{len(texts)}] {TOOL_REGISTRY[i]['tool_name']}...", file=sys.stderr)
                         embeddings.append(generate_embedding_hf_api(text, args.model, args.hf_token))
             else:
                 print("  Using local sentence-transformers...", file=sys.stderr)
                 try:
                     from sentence_transformers import SentenceTransformer
-                    import numpy as np
                 except ImportError:
                     print("Error: Install sentence-transformers: uv pip install sentence-transformers", file=sys.stderr)
                     sys.exit(1)
@@ -386,7 +409,9 @@ def main() -> None:
                 embedding = generate_embedding_local(text, args.model)
 
             upsert_tool(conn, tool, embedding)
-            output = json.dumps({"status": "ok", "tool": args.embed_tool, "dimensions": len(embedding), "model": args.model}, indent=2)
+            output = json.dumps(
+                {"status": "ok", "tool": args.embed_tool, "dimensions": len(embedding), "model": args.model}, indent=2
+            )
 
         elif args.embed_uda:
             print(f"Embedding Netflix UDA schemas using {args.model}...", file=sys.stderr)

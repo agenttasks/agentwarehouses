@@ -66,7 +66,9 @@ def compute_stats(gradings: list[dict]) -> dict:
     return {
         "count": len(gradings),
         "pass_rate": {"mean": round(mean(pass_rates), 4), "stddev": round(stddev(pass_rates), 4)},
-        "duration_ms": {"mean": round(mean(durations), 1), "stddev": round(stddev(durations), 1)} if durations else None,
+        "duration_ms": {"mean": round(mean(durations), 1), "stddev": round(stddev(durations), 1)}
+        if durations
+        else None,
     }
 
 
@@ -104,8 +106,9 @@ def main() -> None:
         benchmark["run_summary"]["delta"] = {
             "pass_rate": round(ws["pass_rate"]["mean"] - wos["pass_rate"]["mean"], 4),
             "duration_ms": round(
-                (ws["duration_ms"]["mean"] if ws["duration_ms"] else 0) -
-                (wos["duration_ms"]["mean"] if wos["duration_ms"] else 0), 1
+                (ws["duration_ms"]["mean"] if ws["duration_ms"] else 0)
+                - (wos["duration_ms"]["mean"] if wos["duration_ms"] else 0),
+                1,
             ),
         }
 

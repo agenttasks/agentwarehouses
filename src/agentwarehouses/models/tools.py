@@ -57,6 +57,7 @@ class ToolDefinition(BaseModel):
 
 # Per-tool input models
 
+
 class BashInput(BaseModel):
     command: str
     description: str | None = None
@@ -152,7 +153,7 @@ class TaskCreateInput(BaseModel):
 
 
 class AskUserQuestionInput(BaseModel):
-    questions: list[dict]
+    questions: list[dict[str, Any]]
 
 
 # All 37 tool names as an enum

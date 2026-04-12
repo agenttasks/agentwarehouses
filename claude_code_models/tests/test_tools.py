@@ -28,7 +28,13 @@ class TestToolName:
         assert ToolName.TOOL_SEARCH == "ToolSearch"
 
     def test_task_tools(self) -> None:
-        task_tools = {ToolName.TASK_CREATE, ToolName.TASK_GET, ToolName.TASK_LIST, ToolName.TASK_UPDATE, ToolName.TASK_STOP}
+        task_tools = {
+            ToolName.TASK_CREATE,
+            ToolName.TASK_GET,
+            ToolName.TASK_LIST,
+            ToolName.TASK_UPDATE,
+            ToolName.TASK_STOP,
+        }
         assert len(task_tools) == 5
 
     def test_team_tools(self) -> None:
@@ -62,7 +68,14 @@ class TestToolDefinition:
 class TestPermissionMode:
     def test_all_modes(self) -> None:
         modes = {m.value for m in PermissionMode}
-        assert modes == {"default", "acceptEdits", "plan", "auto", "dontAsk", "bypassPermissions"}
+        assert modes == {
+            "default",
+            "acceptEdits",
+            "plan",
+            "auto",
+            "dontAsk",
+            "bypassPermissions",
+        }
 
 
 class TestToolPermissionRule:
@@ -87,17 +100,31 @@ class TestToolPermissionRule:
 
 class TestToolUseResult:
     def test_success(self) -> None:
-        r = ToolUseResult(tool_name="Bash", tool_use_id="tu_123", tool_input={"command": "ls"}, tool_response="file1\nfile2")
+        r = ToolUseResult(
+            tool_name="Bash",
+            tool_use_id="tu_123",
+            tool_input={"command": "ls"},
+            tool_response="file1\nfile2",
+        )
         assert r.error is None
         assert r.is_interrupt is False
 
     def test_error(self) -> None:
-        r = ToolUseResult(tool_name="Bash", tool_use_id="tu_456", tool_input={"command": "bad"}, error="command not found")
+        r = ToolUseResult(
+            tool_name="Bash",
+            tool_use_id="tu_456",
+            tool_input={"command": "bad"},
+            error="command not found",
+        )
         assert r.error == "command not found"
 
     @pytest.mark.serialization
     def test_json_roundtrip(self) -> None:
-        r = ToolUseResult(tool_name="Write", tool_use_id="tu_789", tool_input={"file_path": "/a.txt", "content": "hi"})
+        r = ToolUseResult(
+            tool_name="Write",
+            tool_use_id="tu_789",
+            tool_input={"file_path": "/a.txt", "content": "hi"},
+        )
         data = r.model_dump(mode="json")
         restored = ToolUseResult.model_validate(data)
         assert restored.tool_name == "Write"

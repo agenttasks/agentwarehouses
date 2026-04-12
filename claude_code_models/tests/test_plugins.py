@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-from pydantic import ValidationError
 
 from claude_code_models.models.plugins import (
     LSPServerConfig,
@@ -20,7 +19,12 @@ from claude_code_models.models.plugins import (
 
 class TestPluginScope:
     def test_all_scopes(self) -> None:
-        assert set(PluginScope) == {PluginScope.USER, PluginScope.PROJECT, PluginScope.LOCAL, PluginScope.MANAGED}
+        assert set(PluginScope) == {
+            PluginScope.USER,
+            PluginScope.PROJECT,
+            PluginScope.LOCAL,
+            PluginScope.MANAGED,
+        }
 
 
 class TestPluginManifest:

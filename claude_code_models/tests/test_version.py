@@ -11,8 +11,8 @@ from claude_code_models.models.version import (
     ConventionalCommitType,
     DependencyBump,
     PackageConfig,
-    ReleasePleaseConfig,
     ReleaseManifest,
+    ReleasePleaseConfig,
     SemVer,
     UpstreamDependency,
 )
@@ -222,7 +222,7 @@ class TestReleasePleaseConfig:
                     }
                 )
             },
-            **{"changelog-sections": [ChangelogSection(type="feat", section="Features")]}  # type: ignore[arg-type]
+            **{"changelog-sections": [ChangelogSection(type="feat", section="Features")]},  # type: ignore[arg-type]
         )
         assert "claude_code_models" in config.packages
 

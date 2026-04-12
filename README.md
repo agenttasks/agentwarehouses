@@ -40,9 +40,9 @@ For more information about the above compiled landscape for 2025, please refer t
 - [Dragonfly](https://github.com/dragonflydb/dragonfly) - A modern cache store compatible with Redis and Memcached APIs
 
 ### In-memory SQL Database
-- [Apache Ignite](https://github.com/apache/ignite) - A distributed, ACID-compliant in-memory DBMS 
+- [Apache Ignite](https://github.com/apache/ignite) - A distributed, ACID-compliant in-memory DBMS
 - [ReadySet](https://github.com/readysettech/readyset) - A MySQL and Postgres wire-compatible caching layer
-- [VoltDB](https://github.com/voltdb/) - A distributed, horizontally-scalable, ACID-compliant database 
+- [VoltDB](https://github.com/voltdb/) - A distributed, horizontally-scalable, ACID-compliant database
 
 ### Document Store
 - [MongoDB](https://github.com/mongodb/mongo) - A cross-platform, document-oriented NoSQL database
@@ -51,7 +51,7 @@ For more information about the above compiled landscape for 2025, please refer t
 - [CouchDB](https://github.com/apache/couchdb) - A Scalable document-oriented NoSQL database
 - [Couchbase](https://github.com/couchbase) - A modern cloud-native NoSQL distributed database
 - [FerretDB](https://github.com/FerretDB/FerretDB) - A truly Open Source MongoDB alternative!
-- [LowDB](https://github.com/typicode/lowdb) | ⚠️ Inactive | - A simple and fast JSON database 
+- [LowDB](https://github.com/typicode/lowdb) | ⚠️ Inactive | - A simple and fast JSON database
 
 ### NoSQL Multi-model
 - [OrientDB](https://github.com/orientechnologies/orientdb) - A Multi-model DBMS supporting Graph, Document, Reactive, Full-Text and Geospatial models
@@ -76,7 +76,7 @@ For more information about the above compiled landscape for 2025, please refer t
 - [TiKV](https://github.com/tikv/tikv) - A distributed transactional key-value database, originally created to complement TiDB
 - [Immudb](https://github.com/codenotary/immudb) - A database with built-in cryptographic proof and verification
 - [Valkey](https://github.com/valkey-io/valkey) - A distributed key-value datastore forked from Redis
-- [Apache Kvrocks](https://github.com/apache/kvrocks) - A distributed key-value database that uses RocksDB as storage engine 
+- [Apache Kvrocks](https://github.com/apache/kvrocks) - A distributed key-value database that uses RocksDB as storage engine
 
 ### Wide-column Key-value Store
 - [Apache Cassandra](https://github.com/apache/cassandra) - A highly-scalable LSM-Tree based partitioned row store
@@ -150,13 +150,13 @@ For more information about the above compiled landscape for 2025, please refer t
 ## DATA LAKE PLATFORM
 
 ### Distributed File System
-- [Apache Hadoop HDFS](https://github.com/apache/hadoop) - A highly scalable distributed block-based file system 
+- [Apache Hadoop HDFS](https://github.com/apache/hadoop) - A highly scalable distributed block-based file system
 - [GlusterFS](https://github.com/gluster/glusterfs) | ⚠️ Inactive | - A scalable distributed storage that can scale to several petabytes
 - [JuiceFS](https://github.com/juicedata/juicefs) - A distributed POSIX file system built on top of Redis and S3
 - [Lustre](https://github.com/lustre) - A distributed parallel file system purpose-built to provide global POSIX-compliant namespace
 
 ### Distributed Object Store
-- [Apache Ozone](https://github.com/apache/ozone) - A scalable, redundant, and distributed object store for Apache Hadoop 
+- [Apache Ozone](https://github.com/apache/ozone) - A scalable, redundant, and distributed object store for Apache Hadoop
 - [Ceph](https://github.com/ceph/ceph) - A distributed object, block, and file storage platform
 - [Minio](https://github.com/minio/minio) - A high performance object storage being API compatible with Amazon S3
 - [Garage](https://git.deuxfleurs.fr/Deuxfleurs/garage) - A S3-compatible distributed object storage designed for self-hosting at a small-to-medium scale
@@ -188,12 +188,12 @@ For more information about the above compiled landscape for 2025, please refer t
 ## DATA INTEGRATION
 
 ### Data Integration Platform
-- [Airbyte](https://github.com/airbytehq/airbyte) - A data integration platform for ETL / ELT data pipelines with wide range of connectors 
+- [Airbyte](https://github.com/airbytehq/airbyte) - A data integration platform for ETL / ELT data pipelines with wide range of connectors
 - [Apache Nifi](https://github.com/apache/nifi) - A reliable, scalable low-code data integration platform with good enterprise support
 - [Apache Camel](https://github.com/apache/camel) - An embeddable integration framework supporting many enterprise integration patterns
 - [Apache Gobblin](https://github.com/apache/gobblin) - A distributed data integration framework built by LinkedIn supporting both streaming and batch data
 - [Apache Inlong](https://github.com/apache/Inlong) - An integration framework for supporting massive data, originally built at Tencent
-- [Meltano](https://github.com/meltano/meltano) - A declarative code-first data integration engine 
+- [Meltano](https://github.com/meltano/meltano) - A declarative code-first data integration engine
 - [Apache SeaTunnel](https://github.com/apache/seatunnel) - A high-performance, distributed data integration tool supporting vairous ingestion patterns
 - [Estuary Flow](https://github.com/estuary/flow) - A real-time ETL and data pipeline platform for quick data integration
 - [dlt](https://github.com/dlt-hub/dlt) - A lightweight data integration library for Python-first data platforms
@@ -215,7 +215,7 @@ For more information about the above compiled landscape for 2025, please refer t
 - [Sling](https://github.com/slingdata-io/sling-cli) - A CLI tool to transfer data from a source to target storage/database
 
 ### Log & Event Collection
-- [CloudQuery](https://github.com/cloudquery/cloudquery) - An ETL tool for syncing data from cloud APIs to variety of supported destinations 
+- [CloudQuery](https://github.com/cloudquery/cloudquery) - An ETL tool for syncing data from cloud APIs to variety of supported destinations
 - [Snowplow](https://github.com/snowplow/snowplow) | ⚠️ Inactive | - A cloud-native engine for collecting behavioral data and load into various cloud storage systems
 - [EventMesh](https://github.com/apache/eventmesh) - A serverless event middlewar for collecting and loading event data into various targets
 - [Apache Flume](https://github.com/apache/flume) | ⚠️ Inactive | - A scalable distributed log aggregation service
@@ -227,7 +227,7 @@ For more information about the above compiled landscape for 2025, please refer t
 - [NSQ](https://github.com/nsqio/nsq) - A realtime distributed messaging platform designed to operate at scale
 - [Apache Pulsar](https://github.com/apache/pulsar) - A scalable distributed pub-sub messaging system
 - [Apache RocketMQ](https://github.com/apache/rocketmq) - A a cloud native messaging and streaming platform
-- [Redpanda](https://github.com/redpanda-data/redpanda) - A high performance Kafka API compatible streaming data platform 
+- [Redpanda](https://github.com/redpanda-data/redpanda) - A high performance Kafka API compatible streaming data platform
 - [Memphis](https://github.com/memphisdev/memphis) | ⚠️ Inactive | - A scalable data streaming platform for building event-driven applications
 - [AutoMQ](https://github.com/AutoMQ/automq) - A a cloud-first alternative to Kafka using S3 as the main storage layer
 
@@ -247,20 +247,20 @@ For more information about the above compiled landscape for 2025, please refer t
 ## DATA PROCESSING AND COMPUTATION
 
 ### Unified Processing
-- [Apache Beam](https://github.com/apache/beam) - A unified programming model supporting execution on popular distributed processing backends 
-- [Apache Spark](https://github.com/apache/spark) - A unified analytics engine for large-scale data processing 
+- [Apache Beam](https://github.com/apache/beam) - A unified programming model supporting execution on popular distributed processing backends
+- [Apache Spark](https://github.com/apache/spark) - A unified analytics engine for large-scale data processing
 - [Dinky](https://github.com/DataLinkDC/dinky) - A unified streaming & batch computation platform based on Apache Flink
-- [Feldora](https://github.com/feldera/feldera) - A unified incremental computation engine 
+- [Feldora](https://github.com/feldera/feldera) - A unified incremental computation engine
 
 ### Batch processing
 - [Hadoop MapReduce](https://github.com/apache/hadoop) - A  highly scalable distributed batch processing framework from Apache Hadoop project
 - [Apache Tez](https://github.com/apache/tez) - A distributed data processing pipeline built for Apache Hive and Hadoop
 
 ### Stream Processing
-- [Apache Flink](https://github.com/apache/flink) - A scalable high throughput stream processing framework 
+- [Apache Flink](https://github.com/apache/flink) - A scalable high throughput stream processing framework
 - [Apache Samza](https://github.com/apache/samza) - A distributed stream processing framework which uses Kafka and Hadoop, originally developed by LinkedIn
 - [Apache Storm](https://github.com/apache/storm) - A distributed realtime computation system based on  Actor Model framework
-- [Akka](https://github.com/akka/akka) - A highly concurrent, distributed, message-driven processing system based on Actor Model 
+- [Akka](https://github.com/akka/akka) - A highly concurrent, distributed, message-driven processing system based on Actor Model
 - [Bytewax](https://github.com/bytewax/bytewax) - A Python stream processing framework with a Rust distributed processing engine
 - [Timeplus Proton](https://github.com/timeplus-io/proton) - A streaming SQL engine, fast and lightweight, powered by ClickHouse
 - [FastStream](https://github.com/airtai/faststream) - A Python framework for interacting with event streams such as Apache Kafka
@@ -276,7 +276,7 @@ For more information about the above compiled landscape for 2025, please refer t
 - [Ibis](https://github.com/ibis-project/ibis) - A portable Python dataframe library supporting many engine backends
 - [SQLFrame](https://github.com/eakmanrq/sqlframe) - A Spark DataFrame API compatible library for data transformation
 - [Daft](https://github.com/Eventual-Inc/Daft) - A distributed query engine for large-scale data processing using Python or SQL
-- [cuDF](https://github.com/rapidsai/cudf) -  A GPU-accelerated pandas API dataFrame library 
+- [cuDF](https://github.com/rapidsai/cudf) -  A GPU-accelerated pandas API dataFrame library
 
 ### Python Workflow Scaling
 - [Dask](https://github.com/dask/dask) - A flexible parallel computing library with task scheduling
@@ -293,8 +293,8 @@ For more information about the above compiled landscape for 2025, please refer t
 
 ### Workflow Orchestration
 - [Apache Airflow](https://github.com/apache/airflow) - A plaform for creating and scheduling workflows as directed acyclic graphs (DAGs) of tasks
-- [Prefect](https://github.com/PrefectHQ/prefect) - A Python based workflow orchestration tool 
-- [Argo](https://github.com/argoproj/argo-workflows) - A container-native workflow engine for orchestrating parallel jobs on Kubernetes 
+- [Prefect](https://github.com/PrefectHQ/prefect) - A Python based workflow orchestration tool
+- [Argo](https://github.com/argoproj/argo-workflows) - A container-native workflow engine for orchestrating parallel jobs on Kubernetes
 - [Azkaban](https://github.com/azkaban/azkaban) | ⚠️ Inactive | - A batch workflow job scheduler created at LinkedIn to run Hadoop jobs
 - [Cadence](https://github.com/uber/cadence) - A distributed, scalable available orchestration supporting different language client libraries
 - [Dagster](https://github.com/dagster-io/dagster) - A cloud-native data pipeline orchestrator written in Python
@@ -313,12 +313,12 @@ For more information about the above compiled landscape for 2025, please refer t
 - [ApScheduler](https://github.com/agronholm/apscheduler/) - An advanced task scheduler and task queue system for Python
 
 ### Data Quality
-- [Data-diff](https://github.com/datafold/data-diff) | ⛔️ Archived | - A tool for comparing tables within or across databases 
+- [Data-diff](https://github.com/datafold/data-diff) | ⛔️ Archived | - A tool for comparing tables within or across databases
 - [Great Expectations](https://github.com/great-expectations/great_expectations) - A data validation and profiling tool written in Python
 - [Deeque](https://github.com/awslabs/deequ) - A library based on Apache Spark for measuring data quality in large datasets
 - [Pandera](https://github.com/unionai-oss/pandera) - A light-weight, flexible, and expressive statistical data testing library
 - [Soda](https://github.com/sodadata/soda-core) - A CLI tool and Python library for data quality testing
-- [Pydantic](https://github.com/pydantic/pydantic) - A data validation library using Python type hints 
+- [Pydantic](https://github.com/pydantic/pydantic) - A data validation library using Python type hints
 
 ### Data Versioning
 - [LakeFS](https://github.com/treeverse/lakeFS) - A data version control for data stored in data lakes
@@ -352,7 +352,7 @@ For more information about the above compiled landscape for 2025, please refer t
 - [Docker](https://github.com/docker) - The popular OS-level virtualization and containerization software
 
 ### Cluster Administration
-- [Apache Ambari](https://github.com/apache/ambari) - A tool for provisioning, managing, and monitoring of Apache Hadoop clusters 
+- [Apache Ambari](https://github.com/apache/ambari) - A tool for provisioning, managing, and monitoring of Apache Hadoop clusters
 - [Apache Helix](https://github.com/apache/helix) - A generic cluster management framework developed at LinkedIn
 
 ### Security
@@ -402,7 +402,7 @@ For more information about the above compiled landscape for 2025, please refer t
 - [ODD Platform](https://github.com/opendatadiscovery/odd-platform) - A data discovery and observability platform
 
 ### Open Standards
-- [Open Lineage](https://github.com/OpenLineage/OpenLineage) - An open standard for lineage metadata collection 
+- [Open Lineage](https://github.com/OpenLineage/OpenLineage) - An open standard for lineage metadata collection
 - [Open Metadata](https://github.com/open-metadata/OpenMetadata) - A unified metadata platform providing open stadards for managing metadata
 - [Egeria](https://github.com/odpi/egeria) - Open metadata and governance standards to facilitate metadata exchange
 
@@ -418,7 +418,7 @@ For more information about the above compiled landscape for 2025, please refer t
 ## ANALYTICS & VISUALISATION
 
 ### BI & Dashboard
-- [Apache Superset](https://github.com/apache/superset) - A poular open source data visualization and data exploration platform 
+- [Apache Superset](https://github.com/apache/superset) - A poular open source data visualization and data exploration platform
 - [Metabase](https://github.com/metabase/metabase) - A simple data visualisation and exploration dashboard
 - [Redash](https://github.com/getredash/redash) - A tool to explore, query, visualize, and share data with many data source connectors
 - [Lightdash](https://github.com/lightdash/lightdash) - A self-service BI to turn dbt project into a full-stack BI platform
@@ -437,13 +437,13 @@ For more information about the above compiled landscape for 2025, please refer t
 - [Querybook](https://github.com/pinterest/querybook) - A simple query and notebook UI developed by Pinterest
 - [Jupyter](https://github.com/jupyter/notebook) - A popular interactive web-based notebook application
 - [IPython](https://github.com/ipython/ipython) - An enhanced interactive Python shell for data analysis
-- [Datasette](https://github.com/simonw/datasette) - A tool for exploring and publishing data 
+- [Datasette](https://github.com/simonw/datasette) - A tool for exploring and publishing data
 - [GraphiQL](https://github.com/graphql/graphiql) - An in-browser IDE for exploring, querying, and documenting GraphQL APIs
 - [Apollo Studio Explorer](https://github.com/apollographql/embeddable-explorer) - An embeddable GraphQL query explorer for building and testing operations
 
 ### MPP Query Engine
 - [Apache Hive](https://github.com/apache/hive) - A data warehousing and MPP engine on top of Hadoop
-- [Apache Implala](https://github.com/apache/impala) - A MPP engine mainly for Hadoop clusters, developed by Cloudera 
+- [Apache Implala](https://github.com/apache/impala) - A MPP engine mainly for Hadoop clusters, developed by Cloudera
 - [Presto](https://github.com/prestodb/presto) - A distributed SQL query engine for big data
 - [Trino](https://github.com/trinodb/trino) - The former PrestoSQL distributed SQL query engine
 - [Apache Drill](https://github.com/apache/drill) - A distributed MPP query engine against NoSQL and Hadoop data storage systems
@@ -465,7 +465,7 @@ For more information about the above compiled landscape for 2025, please refer t
 ## ML/AI PLATFORM
 
 ### Vector Storage
-- [milvus](https://github.com/milvus-io/milvus) -  A cloud-native vector database, storage for AI applications 
+- [milvus](https://github.com/milvus-io/milvus) -  A cloud-native vector database, storage for AI applications
 - [qdrant](https://github.com/qdrant/qdrant) - A high-performance, scalable Vector database for AI
 - [chroma](https://github.com/chroma-core/chroma) - An AI-native embedding database for building LLM apps
 - [marqo](https://github.com/marqo-ai/marqo) - An end-to-end vector search engine for both text and images
@@ -495,4 +495,3 @@ For more information about the above compiled landscape for 2025, please refer t
 - [Superduper](https://github.com/superduper-io/superduper) - a Python based framework for building AI-data workflows and applications
 - [Cognee](https://github.com/topoteretes/cognee) - LLM Memory Engine for implementing LLM Workflows
 - [vLLM](https://github.com/vllm-project/vllm) - A high-throughput and memory-efficient inference and serving engine for LLMs
-

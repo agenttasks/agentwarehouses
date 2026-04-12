@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Any
 
 from agentwarehouses.models.base import BaseModel
 
@@ -32,7 +33,7 @@ class ConnectorConfig(BaseModel):
     status: ConnectorStatus = ConnectorStatus.INACTIVE
     auth_method: str | None = None
     scopes: list[str] | None = None
-    config: dict | None = None
+    config: dict[str, Any] | None = None
 
 
 class ConnectorCRUD(BaseModel):

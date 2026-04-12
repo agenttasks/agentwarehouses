@@ -36,12 +36,13 @@ Exit codes:
   2  Schema error
   3  Validation errors found""",
     )
-    p.add_argument("--schema", required=True,
-                    help="Path to GraphQL schema (.graphql) file")
-    p.add_argument("--operations", required=True,
-                    help="Path to operation file, directory of .graphql files, or inline query string")
-    p.add_argument("--format", choices=["text", "json"], default="text",
-                    help="Output format (default: text)")
+    p.add_argument("--schema", required=True, help="Path to GraphQL schema (.graphql) file")
+    p.add_argument(
+        "--operations",
+        required=True,
+        help="Path to operation file, directory of .graphql files, or inline query string",
+    )
+    p.add_argument("--format", choices=["text", "json"], default="text", help="Output format (default: text)")
     p.add_argument("--output", help="Write output to file instead of stdout")
     return p
 
@@ -69,7 +70,9 @@ def collect_operations(source: str) -> list[tuple[str, str]]:
     # Inline query string (starts with { or contains query/mutation/subscription keyword)
     if not path.exists():
         stripped = source.strip()
-        if stripped.startswith("{") or any(stripped.startswith(k) for k in ("query", "mutation", "subscription", "fragment")):
+        if stripped.startswith("{") or any(
+            stripped.startswith(k) for k in ("query", "mutation", "subscription", "fragment")
+        ):
             return [("<inline>", source)]
         print(f"Error: Path not found and does not look like an inline query: {source}", file=sys.stderr)
         sys.exit(1)
@@ -107,8 +110,7 @@ def validate_operation(schema, name: str, content: str) -> dict:
             "errors": [
                 {
                     "message": str(e.message),
-                    "locations": [{"line": loc.line, "column": loc.column}
-                                   for loc in (e.locations or [])],
+                    "locations": [{"line": loc.line, "column": loc.column} for loc in (e.locations or [])],
                 }
                 for e in errors
             ],
@@ -160,14 +162,17 @@ def main() -> None:
     results = [validate_operation(schema, name, content) for name, content in operations]
 
     if args.format == "json":
-        output = json.dumps({
-            "results": results,
-            "summary": {
-                "total": len(results),
-                "valid": sum(1 for r in results if r["valid"]),
-                "invalid": sum(1 for r in results if not r["valid"]),
+        output = json.dumps(
+            {
+                "results": results,
+                "summary": {
+                    "total": len(results),
+                    "valid": sum(1 for r in results if r["valid"]),
+                    "invalid": sum(1 for r in results if not r["valid"]),
+                },
             },
-        }, indent=2)
+            indent=2,
+        )
     else:
         output = format_text(results)
 

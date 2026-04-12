@@ -105,7 +105,12 @@ class TestSlashCommand:
         assert cmd.is_skill is False
 
     def test_skill_command(self) -> None:
-        cmd = SlashCommand(name="commit", description="Create a git commit", is_skill=True, arguments="[-m message]")
+        cmd = SlashCommand(
+            name="commit",
+            description="Create a git commit",
+            is_skill=True,
+            arguments="[-m message]",
+        )
         assert cmd.is_skill is True
         assert cmd.arguments is not None
 

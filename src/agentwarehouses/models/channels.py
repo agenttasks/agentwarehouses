@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import Field
 
@@ -12,8 +12,8 @@ from agentwarehouses.models.base import BaseModel
 class ChannelCapabilities(BaseModel):
     """Server capabilities declaration for channels."""
 
-    channel: dict = Field(default_factory=dict, description="Always {}")
-    permission: dict | None = Field(None, description="Enable permission relay")
+    channel: dict[str, Any] = Field(default_factory=dict, description="Always {}")
+    permission: dict[str, Any] | None = Field(None, description="Enable permission relay")
 
 
 class ChannelNotification(BaseModel):
@@ -39,9 +39,7 @@ class ChannelPermissionRequest(BaseModel):
 class ChannelPermissionVerdict(BaseModel):
     """Permission verdict from user back to channel."""
 
-    method: Literal["notifications/claude/channel/permission"] = (
-        "notifications/claude/channel/permission"
-    )
+    method: Literal["notifications/claude/channel/permission"] = "notifications/claude/channel/permission"
     request_id: str = Field(min_length=5, max_length=5)
     behavior: Literal["allow", "deny"]
 
@@ -51,4 +49,4 @@ class ChannelReplyTool(BaseModel):
 
     name: str
     description: str
-    input_schema: dict = Field(alias="inputSchema")
+    input_schema: dict[str, Any] = Field(alias="inputSchema")

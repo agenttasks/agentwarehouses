@@ -51,25 +51,28 @@ Exit codes:
   2  Database or API error
   3  No results above threshold""",
     )
-    p.add_argument("--database-url", default=os.environ.get("DATABASE_URL"),
-                    help="Neon Postgres connection URL (default: $DATABASE_URL)")
-    p.add_argument("--hf-token", default=os.environ.get("HF_TOKEN"),
-                    help="HuggingFace API token (default: $HF_TOKEN)")
-    p.add_argument("--query", required=True,
-                    help="Natural language description of what tool you need")
-    p.add_argument("--model", default=DEFAULT_MODEL,
-                    help=f"Embedding model (default: {DEFAULT_MODEL})")
-    p.add_argument("--top-k", type=int, default=5,
-                    help="Number of results to return (default: 5)")
-    p.add_argument("--threshold", type=float, default=0.3,
-                    help="Minimum similarity score 0-1 (default: 0.3)")
-    p.add_argument("--category", help="Filter by tool category (query, schema, management, federation, codegen, validation, setup, embeddings, search)")
-    p.add_argument("--format", choices=["text", "json", "tool_reference"], default="text",
-                    help="Output format (default: text). tool_reference outputs Anthropic tool_reference format")
-    p.add_argument("--search-uda", action="store_true",
-                    help="Search UDA schema registry instead of tools")
-    p.add_argument("--log", action="store_true",
-                    help="Log this search query for analytics")
+    p.add_argument(
+        "--database-url",
+        default=os.environ.get("DATABASE_URL"),
+        help="Neon Postgres connection URL (default: $DATABASE_URL)",
+    )
+    p.add_argument("--hf-token", default=os.environ.get("HF_TOKEN"), help="HuggingFace API token (default: $HF_TOKEN)")
+    p.add_argument("--query", required=True, help="Natural language description of what tool you need")
+    p.add_argument("--model", default=DEFAULT_MODEL, help=f"Embedding model (default: {DEFAULT_MODEL})")
+    p.add_argument("--top-k", type=int, default=5, help="Number of results to return (default: 5)")
+    p.add_argument("--threshold", type=float, default=0.3, help="Minimum similarity score 0-1 (default: 0.3)")
+    p.add_argument(
+        "--category",
+        help="Filter by tool category (query, schema, management, federation, codegen, validation, setup, embeddings, search)",
+    )
+    p.add_argument(
+        "--format",
+        choices=["text", "json", "tool_reference"],
+        default="text",
+        help="Output format (default: text). tool_reference outputs Anthropic tool_reference format",
+    )
+    p.add_argument("--search-uda", action="store_true", help="Search UDA schema registry instead of tools")
+    p.add_argument("--log", action="store_true", help="Log this search query for analytics")
     p.add_argument("--output", help="Write output to file instead of stdout")
     return p
 
@@ -134,8 +137,9 @@ VALUES (%s, %s, %s, %s, %s)
 """
 
 
-def search_tools(conn, query_embedding: list[float], top_k: int, threshold: float,
-                 category: str | None = None) -> list[dict]:
+def search_tools(
+    conn, query_embedding: list[float], top_k: int, threshold: float, category: str | None = None
+) -> list[dict]:
     formatted = f"[{','.join(str(x) for x in query_embedding)}]"
 
     sql = TOOL_SEARCH_SQL
@@ -207,10 +211,7 @@ def format_text(results: list[dict], query: str, is_uda: bool = False) -> str:
 
 def format_tool_references(results: list[dict]) -> list[dict]:
     """Format results as Anthropic tool_reference objects for Claude tool_search."""
-    return [
-        {"type": "tool_reference", "tool_name": r["tool_name"]}
-        for r in results
-    ]
+    return [{"type": "tool_reference", "tool_name": r["tool_name"]} for r in results]
 
 
 def main() -> None:
@@ -226,7 +227,7 @@ def main() -> None:
         sys.exit(1)
 
     # Generate query embedding
-    print(f"Embedding query: \"{args.query}\"...", file=sys.stderr)
+    print(f'Embedding query: "{args.query}"...', file=sys.stderr)
     try:
         query_embedding = generate_embedding_hf_api(args.query, args.model, args.hf_token)
     except RuntimeError as e:
@@ -275,6 +276,7 @@ def main() -> None:
 
         if args.output:
             from pathlib import Path as P
+
             P(args.output).write_text(output + "\n")
             print(f"Output written to {args.output}", file=sys.stderr)
         else:

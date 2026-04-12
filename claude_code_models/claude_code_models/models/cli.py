@@ -94,7 +94,10 @@ class CLIConfig(BaseModel):
     append_system_prompt: str | None = None
     allowed_tools: list[str] = Field(default_factory=list)
     disallowed_tools: list[str] = Field(default_factory=list)
-    tools: str | None = Field(default=None, description="Restrict tools: '' disables all, 'default' for all, or comma-separated names")
+    tools: str | None = Field(
+        default=None,
+        description="Restrict tools: '' disables all, 'default' for all, or comma-separated names",
+    )
     add_dirs: list[str] = Field(default_factory=list)
     mcp_config: list[str] = Field(default_factory=list)
     betas: list[str] = Field(default_factory=list)

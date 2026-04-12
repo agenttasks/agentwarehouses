@@ -73,6 +73,7 @@ class ClaudeAgentOptions(LenientModel):
 
 # Message types
 
+
 class TextBlock(BaseModel):
     type: Literal["text"] = "text"
     text: str

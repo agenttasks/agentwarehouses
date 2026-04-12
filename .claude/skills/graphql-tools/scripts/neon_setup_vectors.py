@@ -20,7 +20,6 @@ import sys
 
 import psycopg
 
-
 SETUP_SQL = """
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -126,8 +125,11 @@ Exit codes:
   1  Client error
   2  Database error""",
     )
-    p.add_argument("--database-url", default=os.environ.get("DATABASE_URL"),
-                    help="Neon Postgres connection URL (default: $DATABASE_URL)")
+    p.add_argument(
+        "--database-url",
+        default=os.environ.get("DATABASE_URL"),
+        help="Neon Postgres connection URL (default: $DATABASE_URL)",
+    )
     action = p.add_mutually_exclusive_group(required=True)
     action.add_argument("--setup", action="store_true", help="Create extensions, tables, and indexes")
     action.add_argument("--verify", action="store_true", help="Verify setup is complete")
@@ -219,7 +221,16 @@ def main() -> None:
             with conn.cursor() as cur:
                 cur.execute(TEARDOWN_SQL)
                 conn.commit()
-            print(json.dumps({"status": "ok", "action": "teardown", "tables_dropped": ["graphql_tools", "tool_search_log", "uda_schema_registry"]}, indent=2))
+            print(
+                json.dumps(
+                    {
+                        "status": "ok",
+                        "action": "teardown",
+                        "tables_dropped": ["graphql_tools", "tool_search_log", "uda_schema_registry"],
+                    },
+                    indent=2,
+                )
+            )
 
     except psycopg.Error as e:
         print(f"Error: Database error: {e}", file=sys.stderr)

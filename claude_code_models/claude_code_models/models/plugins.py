@@ -49,9 +49,7 @@ class PluginChannelDeclaration(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, populate_by_name=True)
 
     server: str = Field(description="Must match a key in the plugin's mcpServers")
-    user_config: dict[str, PluginUserConfigEntry] | None = Field(
-        default=None, alias="userConfig"
-    )
+    user_config: dict[str, PluginUserConfigEntry] | None = Field(default=None, alias="userConfig")
 
 
 class PluginManifest(BaseModel):
@@ -77,9 +75,7 @@ class PluginManifest(BaseModel):
     output_styles: str | list[str] | None = Field(default=None, alias="outputStyles")
     lsp_servers: str | list[str] | dict | None = Field(default=None, alias="lspServers")
 
-    user_config: dict[str, PluginUserConfigEntry] | None = Field(
-        default=None, alias="userConfig"
-    )
+    user_config: dict[str, PluginUserConfigEntry] | None = Field(default=None, alias="userConfig")
     channels: list[PluginChannelDeclaration] | None = None
 
 

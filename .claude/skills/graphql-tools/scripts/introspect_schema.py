@@ -40,18 +40,28 @@ Exit codes:
   3  Schema build error""",
     )
     source = p.add_argument_group("source")
-    source.add_argument("--endpoint", default=os.environ.get("GRAPHQL_ENDPOINT"),
-                         help="GraphQL endpoint URL (default: $GRAPHQL_ENDPOINT)")
+    source.add_argument(
+        "--endpoint",
+        default=os.environ.get("GRAPHQL_ENDPOINT"),
+        help="GraphQL endpoint URL (default: $GRAPHQL_ENDPOINT)",
+    )
     source.add_argument("--from-json", help="Build schema from a saved introspection JSON file instead of querying")
 
-    p.add_argument("--format", choices=["sdl", "json"], default="sdl",
-                    help="Output format: sdl (GraphQL Schema Definition Language) or json (default: sdl)")
-    p.add_argument("--types-only", action="store_true",
-                    help="Only output user-defined types (exclude built-in scalars and introspection types)")
-    p.add_argument("--header", action="append", default=[],
-                    help="HTTP header as 'Key: Value' (repeatable)")
-    p.add_argument("--bearer-token", default=os.environ.get("GRAPHQL_BEARER_TOKEN"),
-                    help="Bearer token for Authorization header")
+    p.add_argument(
+        "--format",
+        choices=["sdl", "json"],
+        default="sdl",
+        help="Output format: sdl (GraphQL Schema Definition Language) or json (default: sdl)",
+    )
+    p.add_argument(
+        "--types-only",
+        action="store_true",
+        help="Only output user-defined types (exclude built-in scalars and introspection types)",
+    )
+    p.add_argument("--header", action="append", default=[], help="HTTP header as 'Key: Value' (repeatable)")
+    p.add_argument(
+        "--bearer-token", default=os.environ.get("GRAPHQL_BEARER_TOKEN"), help="Bearer token for Authorization header"
+    )
     p.add_argument("--output", help="Write output to file instead of stdout")
     p.add_argument("--timeout", type=int, default=30, help="Request timeout in seconds (default: 30)")
     return p
@@ -123,9 +133,18 @@ def load_introspection_json(path: str) -> dict:
 
 
 BUILTIN_TYPES = {
-    "String", "Int", "Float", "Boolean", "ID",
-    "__Schema", "__Type", "__Field", "__InputValue",
-    "__EnumValue", "__Directive", "__DirectiveLocation",
+    "String",
+    "Int",
+    "Float",
+    "Boolean",
+    "ID",
+    "__Schema",
+    "__Type",
+    "__Field",
+    "__InputValue",
+    "__EnumValue",
+    "__Directive",
+    "__DirectiveLocation",
 }
 
 
@@ -134,7 +153,11 @@ def filter_user_types(sdl: str) -> str:
     result = []
     skip = False
     for line in lines:
-        if any(line.startswith(f"{kw} {t}") for kw in ("type", "scalar", "enum", "input", "interface", "union") for t in BUILTIN_TYPES):
+        if any(
+            line.startswith(f"{kw} {t}")
+            for kw in ("type", "scalar", "enum", "input", "interface", "union")
+            for t in BUILTIN_TYPES
+        ):
             skip = True
             continue
         if skip:

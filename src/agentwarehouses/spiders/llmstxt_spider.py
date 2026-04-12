@@ -30,7 +30,7 @@ class LlmstxtSpider(scrapy.Spider):
     name = "llmstxt"
     allowed_domains = ["code.claude.com"]
 
-    custom_settings: dict[str, Any] = {
+    custom_settings: dict[bool | float | int | str | None, Any] | None = {
         "CONCURRENT_REQUESTS": 16,
         "CONCURRENT_REQUESTS_PER_DOMAIN": 8,
         "DOWNLOAD_DELAY": 0.25,
@@ -83,17 +83,22 @@ class LlmstxtSpider(scrapy.Spider):
     def handle_error(self, failure: Failure) -> None:
         """Log errors without crashing the crawl."""
         self._stats["pages_failed"] += 1
-        url: str = failure.request.url
+        request: scrapy.Request = failure.request  # type: ignore[attr-defined]
+        url: str = request.url
 
-        if failure.check(HttpError):
-            status: int = failure.value.response.status
+        if failure.check(HttpError):  # type: ignore[no-untyped-call]
+            exc = failure.value
+            assert exc is not None
+            status: int = exc.response.status  # type: ignore[attr-defined]
             self.logger.error("ERROR: HTTP %d fetching %s", status, url)
-        elif failure.check(DNSLookupError):
+        elif failure.check(DNSLookupError):  # type: ignore[no-untyped-call]
             self.logger.error("ERROR: DNS lookup failed for %s", url)
-        elif failure.check(TimeoutError):
+        elif failure.check(TimeoutError):  # type: ignore[no-untyped-call]
             self.logger.error("ERROR: Timeout fetching %s", url)
         else:
-            self.logger.error("ERROR: %s fetching %s", failure.type.__name__, url)
+            failure_type = failure.type
+            type_name = failure_type.__name__ if failure_type is not None else "Unknown"
+            self.logger.error("ERROR: %s fetching %s", type_name, url)
 
     def closed(self, reason: str) -> None:
         """Log crawl summary stats on spider close."""

@@ -57,7 +57,14 @@ class TestMCPToolAnnotations:
 
 class TestMCPToolDefinition:
     def test_basic(self) -> None:
-        td = MCPToolDefinition(name="search", description="Search docs", input_schema={"type": "object", "properties": {"query": {"type": "string"}}})
+        td = MCPToolDefinition(
+            name="search",
+            description="Search docs",
+            input_schema={
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+            },
+        )
         assert td.name == "search"
 
     def test_with_annotations(self) -> None:
@@ -88,10 +95,12 @@ class TestMCPToolResult:
         assert r.is_error is True
 
     def test_multi_content(self) -> None:
-        r = MCPToolResult(content=[
-            {"type": "text", "text": "info"},
-            {"type": "image", "data": "base64...", "mimeType": "image/png"},
-        ])
+        r = MCPToolResult(
+            content=[
+                {"type": "text", "text": "info"},
+                {"type": "image", "data": "base64...", "mimeType": "image/png"},
+            ]
+        )
         assert len(r.content) == 2
 
 
@@ -115,10 +124,12 @@ class TestMCPConfig:
         assert mc.mcp_servers == {}
 
     def test_multi_server(self) -> None:
-        mc = MCPConfig(mcpServers={
-            "github": MCPServerConfig(command="npx", args=["@mcp/github"]),
-            "fs": MCPServerConfig(command="npx", args=["@mcp/filesystem", "/home"]),
-        })
+        mc = MCPConfig(
+            mcpServers={
+                "github": MCPServerConfig(command="npx", args=["@mcp/github"]),
+                "fs": MCPServerConfig(command="npx", args=["@mcp/filesystem", "/home"]),
+            }
+        )
         assert len(mc.mcp_servers) == 2
 
     @pytest.mark.serialization

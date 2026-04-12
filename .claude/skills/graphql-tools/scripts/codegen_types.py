@@ -43,18 +43,27 @@ Exit codes:
   2  Schema error""",
     )
     p.add_argument("--schema", required=True, help="Path to GraphQL schema (.graphql) file")
-    p.add_argument("--lang", required=True, choices=["typescript", "python"],
-                    help="Target language for generated types")
+    p.add_argument(
+        "--lang", required=True, choices=["typescript", "python"], help="Target language for generated types"
+    )
     p.add_argument("--output", help="Write output to file instead of stdout")
-    p.add_argument("--no-builtins", action="store_true",
-                    help="Exclude built-in scalar types from output")
+    p.add_argument("--no-builtins", action="store_true", help="Exclude built-in scalar types from output")
     return p
 
 
 BUILTIN_TYPE_NAMES = {
-    "String", "Int", "Float", "Boolean", "ID",
-    "__Schema", "__Type", "__Field", "__InputValue",
-    "__EnumValue", "__Directive", "__DirectiveLocation",
+    "String",
+    "Int",
+    "Float",
+    "Boolean",
+    "ID",
+    "__Schema",
+    "__Type",
+    "__Field",
+    "__InputValue",
+    "__EnumValue",
+    "__Directive",
+    "__DirectiveLocation",
 }
 
 SCALAR_MAP_TS = {
@@ -119,8 +128,7 @@ def generate_typescript(schema, skip_builtins: bool) -> str:
 
     # Custom scalars
     custom_scalars = [
-        n for n, t in type_map.items()
-        if isinstance(t, GraphQLScalarType) and n not in BUILTIN_TYPE_NAMES
+        n for n, t in type_map.items() if isinstance(t, GraphQLScalarType) and n not in BUILTIN_TYPE_NAMES
     ]
     if custom_scalars:
         for name in sorted(custom_scalars):
@@ -197,8 +205,7 @@ def generate_python(schema, skip_builtins: bool) -> str:
 
     # Custom scalars
     custom_scalars = [
-        n for n, t in type_map.items()
-        if isinstance(t, GraphQLScalarType) and n not in BUILTIN_TYPE_NAMES
+        n for n, t in type_map.items() if isinstance(t, GraphQLScalarType) and n not in BUILTIN_TYPE_NAMES
     ]
     if custom_scalars:
         for name in sorted(custom_scalars):

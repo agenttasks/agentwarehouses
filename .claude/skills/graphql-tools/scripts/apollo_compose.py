@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 import yaml
-from graphql import build_schema, parse, print_ast
+from graphql import build_schema, parse
 from graphql.error import GraphQLSyntaxError
 
 
@@ -53,10 +53,10 @@ Exit codes:
     mode = p.add_mutually_exclusive_group(required=True)
     mode.add_argument("--config", help="Supergraph config YAML file for composition")
     mode.add_argument("--validate", action="store_true", help="Validate a single subgraph schema")
-    mode.add_argument("--check-directives", action="store_true",
-                       help="Check federation directive usage in a schema")
-    mode.add_argument("--merge", nargs="+", metavar="SCHEMA",
-                       help="Merge multiple schema files (simple concatenation with dedup)")
+    mode.add_argument("--check-directives", action="store_true", help="Check federation directive usage in a schema")
+    mode.add_argument(
+        "--merge", nargs="+", metavar="SCHEMA", help="Merge multiple schema files (simple concatenation with dedup)"
+    )
 
     p.add_argument("--subgraph", help="Subgraph name (for --validate)")
     p.add_argument("--schema", help="Schema file path (for --validate, --check-directives)")
@@ -69,13 +69,42 @@ FEDERATION_DIRECTIVES = {
     "@external": {"on": ["FIELD_DEFINITION"], "purpose": "Marks field as owned by another subgraph"},
     "@requires": {"on": ["FIELD_DEFINITION"], "purpose": "Specifies fields needed from this subgraph for resolution"},
     "@provides": {"on": ["FIELD_DEFINITION"], "purpose": "Specifies fields this subgraph can provide for entities"},
-    "@shareable": {"on": ["OBJECT", "FIELD_DEFINITION"], "purpose": "Allows field to be resolved by multiple subgraphs"},
+    "@shareable": {
+        "on": ["OBJECT", "FIELD_DEFINITION"],
+        "purpose": "Allows field to be resolved by multiple subgraphs",
+    },
     "@extends": {"on": ["OBJECT", "INTERFACE"], "purpose": "Marks type as extension of entity from another subgraph"},
     "@override": {"on": ["FIELD_DEFINITION"], "purpose": "Migrates field resolution from one subgraph to another"},
-    "@inaccessible": {"on": ["FIELD_DEFINITION", "OBJECT", "INTERFACE", "UNION", "ENUM", "ENUM_VALUE", "SCALAR", "INPUT_OBJECT", "INPUT_FIELD_DEFINITION", "ARGUMENT_DEFINITION"],
-                       "purpose": "Hides element from the public API"},
-    "@tag": {"on": ["FIELD_DEFINITION", "OBJECT", "INTERFACE", "UNION", "ENUM", "ENUM_VALUE", "SCALAR", "INPUT_OBJECT", "INPUT_FIELD_DEFINITION", "ARGUMENT_DEFINITION"],
-             "purpose": "Applies metadata tags for schema contracts"},
+    "@inaccessible": {
+        "on": [
+            "FIELD_DEFINITION",
+            "OBJECT",
+            "INTERFACE",
+            "UNION",
+            "ENUM",
+            "ENUM_VALUE",
+            "SCALAR",
+            "INPUT_OBJECT",
+            "INPUT_FIELD_DEFINITION",
+            "ARGUMENT_DEFINITION",
+        ],
+        "purpose": "Hides element from the public API",
+    },
+    "@tag": {
+        "on": [
+            "FIELD_DEFINITION",
+            "OBJECT",
+            "INTERFACE",
+            "UNION",
+            "ENUM",
+            "ENUM_VALUE",
+            "SCALAR",
+            "INPUT_OBJECT",
+            "INPUT_FIELD_DEFINITION",
+            "ARGUMENT_DEFINITION",
+        ],
+        "purpose": "Applies metadata tags for schema contracts",
+    },
 }
 
 FEDERATION_DIRECTIVES_SDL = """
@@ -147,9 +176,13 @@ def validate_subgraph(name: str, schema_path: str) -> dict:
         "valid": len(issues) == 0,
         "issues": issues,
         "warnings": warnings,
-        "entities": [t.name for t in schema.type_map.values()
-                      if hasattr(t, 'ast_node') and t.ast_node
-                      and any(d.name.value == "key" for d in (t.ast_node.directives or []))],
+        "entities": [
+            t.name
+            for t in schema.type_map.values()
+            if hasattr(t, "ast_node")
+            and t.ast_node
+            and any(d.name.value == "key" for d in (t.ast_node.directives or []))
+        ],
     }
 
 
@@ -161,13 +194,15 @@ def check_directives(schema_path: str) -> dict:
         if directive_name in sdl:
             # Find approximate locations
             lines = sdl.split("\n")
-            locations = [f"line {i+1}" for i, line in enumerate(lines) if directive_name in line]
+            locations = [f"line {i + 1}" for i, line in enumerate(lines) if directive_name in line]
             found[directive_name] = locations
 
     return {
         "file": schema_path,
-        "directives_found": {k: {"count": len(v), "locations": v, "purpose": FEDERATION_DIRECTIVES[k]["purpose"]}
-                              for k, v in found.items()},
+        "directives_found": {
+            k: {"count": len(v), "locations": v, "purpose": FEDERATION_DIRECTIVES[k]["purpose"]}
+            for k, v in found.items()
+        },
         "directives_not_found": [k for k in FEDERATION_DIRECTIVES if k not in found],
     }
 
@@ -203,7 +238,9 @@ def compose_from_config(config_path: str) -> str:
         if not result["valid"]:
             all_valid = False
         else:
-            schemas.append(f"# Subgraph: {name}\n# URL: {sub_config.get('routing_url', 'N/A')}\n\n{read_schema_file(schema_path)}")
+            schemas.append(
+                f"# Subgraph: {name}\n# URL: {sub_config.get('routing_url', 'N/A')}\n\n{read_schema_file(schema_path)}"
+            )
 
     validation_output = json.dumps({"composition": {"valid": all_valid, "subgraphs": results}}, indent=2)
     print(validation_output, file=sys.stderr)

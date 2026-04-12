@@ -24,7 +24,8 @@ class SkillFrontmatter(BaseModel):
     compatibility: str | None = Field(default=None, max_length=500)
     metadata: dict[str, str] | None = None
     allowed_tools: str | None = Field(
-        default=None, alias="allowed-tools",
+        default=None,
+        alias="allowed-tools",
         description="Space-separated string of pre-approved tools (experimental)",
     )
 

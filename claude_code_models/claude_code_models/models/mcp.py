@@ -91,6 +91,4 @@ class MCPConfig(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True, populate_by_name=True)
 
-    mcp_servers: dict[str, MCPServerConfig] = Field(
-        default_factory=dict, alias="mcpServers"
-    )
+    mcp_servers: dict[str, MCPServerConfig] = Field(default_factory=dict, alias="mcpServers")

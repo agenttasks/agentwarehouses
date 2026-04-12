@@ -178,9 +178,7 @@ class ReleasePleaseConfig(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, populate_by_name=True)
 
     packages: dict[str, PackageConfig]
-    changelog_sections: list[ChangelogSection] = Field(
-        default_factory=list, alias="changelog-sections"
-    )
+    changelog_sections: list[ChangelogSection] = Field(default_factory=list, alias="changelog-sections")
 
 
 class ReleaseManifest(BaseModel):

@@ -141,7 +141,7 @@ RESOURCES = {
             "delete": "Remove agent from agents dict in ClaudeAgentOptions",
         },
         "api": {
-            "create": "`claude -p --agents '{\"name\":{\"description\":\"...\",\"prompt\":\"...\"}}'`",
+            "create": '`claude -p --agents \'{"name":{"description":"...","prompt":"..."}}\'`',
             "read": "`claude agents` to list configured agents",
             "update": "Re-invoke with updated `--agents` JSON",
             "delete": "Remove from `--agents` JSON or delete `.claude/agents/{name}.md`",
@@ -286,16 +286,16 @@ disable-model-invocation: false
 - Removing {resource}
 
 ## Create
-{ops['create']}
+{ops["create"]}
 
 ## Read
-{ops['read']}
+{ops["read"]}
 
 ## Update
-{ops['update']}
+{ops["update"]}
 
 ## Delete
-{ops['delete']}
+{ops["delete"]}
 
 ## Validation
 1. Verify the operation completed without errors
@@ -348,8 +348,7 @@ def generate_eval_json(interface: str, resource: str, profile: dict) -> str:
 def generate_router_skill(interface: str) -> str:
     """Generate a router SKILL.md for an interface."""
     resource_list = "\n".join(
-        f"- **{profile['display']}**: `/crud-{interface}-{resource}`"
-        for resource, profile in RESOURCES.items()
+        f"- **{profile['display']}**: `/crud-{interface}-{resource}`" for resource, profile in RESOURCES.items()
     )
     return f"""---
 name: crud-{interface}

@@ -12,6 +12,7 @@ Usage:
 
 import logging
 import os
+from typing import Any
 
 import colorlog
 
@@ -87,7 +88,7 @@ def get_logger(name: str, level: str | None = None) -> logging.Logger:
     return logger
 
 
-def get_otel_config() -> dict:
+def get_otel_config() -> dict[str, Any]:
     """Return OTEL environment configuration for Claude Code 2.1.104 telemetry.
 
     These settings mirror the Claude Code monitoring docs and can be

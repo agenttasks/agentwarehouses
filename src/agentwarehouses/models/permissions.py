@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Literal
+from typing import Any, Literal
 
 from agentwarehouses.models.base import BaseModel
 
@@ -55,7 +55,7 @@ class PermissionUpdate(BaseModel):
 
 class PermissionResultAllow(BaseModel):
     behavior: Literal["allow"] = "allow"
-    updated_input: dict | None = None
+    updated_input: dict[str, Any] | None = None
     updated_permissions: list[PermissionUpdate] | None = None
 
 

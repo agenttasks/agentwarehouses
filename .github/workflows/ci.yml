@@ -14,8 +14,8 @@ permissions:
   contents: read
 
 jobs:
-  lint:
-    name: Lint & Type Check
+  pre-commit:
+    name: Pre-commit Checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,8 +26,7 @@ jobs:
         with:
           python-version: "3.11"
       - run: make install-ci
-      - run: make lint
-      - run: make typecheck
+      - uses: pre-commit/action@v3.0.1
 
   test:
     name: Test (Python ${{ matrix.python-version }})
