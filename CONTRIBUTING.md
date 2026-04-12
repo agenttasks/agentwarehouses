@@ -1,150 +1,214 @@
 # Contributing to agentwarehouses
 
-## Prerequisites
+## Development Setup
 
-- Python 3.11+
-- [uv](https://docs.astral.sh/uv/) (installed automatically by `make install-dev`)
+### Prerequisites
+
+- Python 3.10+
+- [uv](https://docs.astral.sh/uv/) (recommended) or pip
 - Git
 
-## Setup
+### Install dependencies
 
 ```bash
-git clone https://github.com/agenttasks/agentwarehouses.git
-cd agentwarehouses
-make install-dev
+cd claude_code_models
+uv sync --dev
 ```
 
-## Development Workflow
-
-1. **Create a branch** from `main`
-2. **Make changes** — one feature per commit
-3. **Run checks** before pushing:
+Or with pip:
 
 ```bash
-make ci          # lint + test with 90% coverage threshold
+pip install -e ".[dev]"
 ```
 
-Or individually:
+### Run tests
 
 ```bash
-make lint        # ruff check src/ tests/ scripts/
-make test        # parallel tests (auto-detect CPUs)
-make test-cov    # tests + coverage report
-make typecheck   # mypy strict mode
+# Full suite with coverage (parallel across available CPUs)
+uv run pytest --cov=claude_code_models --cov-report=term-missing --cov-branch -n auto
+
+# Single marker (e.g. hooks, mcp, semver, tools, cli, plugins, channels, agents, skills, sessions)
+uv run pytest -m hooks -v
+
+# Fast run excluding slow tests
+uv run pytest -m "not slow" -n auto
+
+# Specific test file
+uv run pytest tests/test_version.py -v
 ```
 
-## Test Markers
+Coverage must stay at or above **90%** (configured in `pyproject.toml`). Current coverage: **100%**.
 
-Tests are organized with pytest markers. Run subsets with:
+### Lint and type check
 
 ```bash
-make test-unit          # fast isolated unit tests
-make test-models        # Pydantic model validation
-make test-integration   # Scrapy response + filesystem tests
-make test-evals         # AgentSkills.io eval schema validation
+uv run ruff check .
+uv run mypy claude_code_models/
 ```
 
-## Code Standards
+## Commit Conventions
 
-### Return Types Required
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) with [release-please](https://github.com/googleapis/release-please) for automated versioning.
 
-All functions must have return type annotations. The project enforces `mypy --strict`.
+### Commit message format
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Types
+
+| Type | When to use | Version bump |
+|---|---|---|
+| `feat` | New feature or model | MINOR |
+| `fix` | Bug fix | PATCH |
+| `deps` | Upstream dependency update (anthropic SDK, MCP SDK) | MINOR |
+| `docs` | Documentation only | none |
+| `test` | Adding or updating tests | none |
+| `refactor` | Code change that neither fixes nor adds | none |
+| `chore` | Maintenance, CI, tooling | none |
+
+### Breaking changes
+
+Append `!` after the type/scope, or add a `BREAKING CHANGE:` footer:
+
+```
+feat(hooks)!: rename SessionStart matcher values
+
+BREAKING CHANGE: "startup" is now "start", "resume" is now "continue"
+```
+
+Breaking changes bump the MAJOR version (once past 1.0.0).
+
+### Upstream dependency bumps
+
+When `anthropic` SDK or `mcp` SDK publishes a new version:
+
+```
+deps(anthropic-sdk): bump to 0.53.0
+deps(mcp-sdk): bump to 1.10.0
+```
+
+These trigger a MINOR version bump via release-please.
+
+## Adding or Updating Models
+
+### Where models live
+
+```
+claude_code_models/claude_code_models/models/
+├── version.py      # SemVer, ConventionalCommit, UpstreamDependency
+├── tools.py        # ToolName enum, ToolDefinition, PermissionMode
+├── cli.py          # CLICommand, CLIFlag, EnvironmentVariable
+├── hooks.py        # HookEventName, handlers, matchers, config
+├── plugins.py      # PluginManifest, LSPServerConfig, marketplace
+├── channels.py     # ChannelNotification, PermissionRequest/Verdict
+├── checkpoints.py  # Checkpoint, RewindAction
+├── sessions.py     # Session, SessionEvent
+├── skills.py       # SkillFrontmatter, SlashCommand
+├── mcp.py          # MCPServerConfig, MCPToolDefinition
+└── agents.py       # SubAgentFrontmatter, AgentTeam
+```
+
+### Pydantic patterns (2.0, prepared for 3.0)
+
+Follow these patterns in all models:
 
 ```python
-# Good
-def process_item(self, item: Any, spider: scrapy.Spider) -> Any:
+from __future__ import annotations          # Required: deferred eval for 3.0
 
-# Bad — missing return type
-def process_item(self, item, spider):
+from pydantic import BaseModel, ConfigDict, Field
+
+class MyModel(BaseModel):
+    model_config = ConfigDict(              # Not inner Config class
+        str_strip_whitespace=True,
+        populate_by_name=True,              # Allow both alias and field name
+    )
+
+    my_field: str | None = None             # PEP 604 unions, not Optional
+    camel_field: str = Field(alias="camelField")  # JSON alias
 ```
 
-### Coverage Threshold
+Key rules:
 
-Code coverage must stay above **90%** (currently 99.47%). The `make test-cov` target enforces this.
+- Use `from __future__ import annotations` in every module
+- Use `ConfigDict(...)` on class body, never inner `Config` class
+- Use `str | None` not `Optional[str]`
+- Use `StrEnum` not `str, Enum`
+- Use `Field(alias="...")` with `populate_by_name=True` for camelCase JSON
+- Use `field_validator` / `model_validator` decorators, not `validator`
+- Add return type annotations to every function/method
+- Export public names via `__all__`
+
+### Adding a new model
+
+1. Create or edit the appropriate module in `models/`
+2. Add to `__all__` in the module
+3. Add import in `claude_code_models/__init__.py`
+4. Write tests in `tests/test_<module>.py` with:
+   - Construction tests (minimal and full)
+   - Validation error tests (marked `@pytest.mark.validation`)
+   - JSON roundtrip tests (marked `@pytest.mark.serialization`)
+   - Frozen/immutable tests where applicable
+5. Run tests and verify coverage stays above 90%
+
+### Adding a new tool to ToolName enum
+
+When Claude Code adds a new built-in tool:
+
+1. Add the entry to `ToolName` in `models/tools.py`
+2. Update the count assertion in `tests/test_tools.py::TestToolName::test_all_tools_enumerated`
+3. Commit: `feat(tools): add NewToolName tool`
+
+### Adding a new hook event
+
+When Claude Code adds a new lifecycle event:
+
+1. Add the entry to `HookEventName` in `models/hooks.py`
+2. Update the count assertion in `tests/test_hooks.py::TestHookEventName::test_count`
+3. Add relevant tests for the event's input/output shapes
+4. Commit: `feat(hooks): add NewEvent lifecycle event`
+
+## Skills Development
+
+### graphql-tools skill
+
+The `graphql-tools` skill lives at `.claude/skills/graphql-tools/`. Scripts are self-contained Python with PEP 723 inline dependencies:
 
 ```bash
-make test-cov    # fails if coverage drops below 90%
+uv run .claude/skills/graphql-tools/scripts/<script>.py --help
 ```
 
-### Lint Rules
+### crud-eval skill
 
-Ruff with `E`, `F`, `I`, `W` rules. Auto-fix with:
+The `crud-eval` skill at `.claude/skills/crud-eval/` follows the [agentskills.io evaluation spec](https://agentskills.io/skill-creation/evaluating-skills):
 
 ```bash
-make lint-fix
+# Generate eval matrix
+uv run .claude/skills/crud-eval/scripts/generate_eval_matrix.py --output evals/evals.json
+
+# Run an eval
+uv run .claude/skills/crud-eval/scripts/run_eval.py --eval-id cli-sessions-create --workspace workspace/iteration-1
 ```
 
-### Commit Messages
+## Pull Request Process
 
-Follow [Conventional Commits](https://www.conventionalcommits.org/) for release-please:
+1. Create a feature branch from `main`
+2. Make changes following the patterns above
+3. Run the full test suite with coverage
+4. Commit using conventional commit messages
+5. Push and create a PR
 
-| Prefix | When | Version Bump |
-|---|---|---|
-| `feat(models):` | New model or field | minor |
-| `fix(spider):` | Bug fix | patch |
-| `deps(upstream):` | Upstream SDK bump | minor |
-| `feat!:` | Breaking change | major |
-| `docs:` | Documentation only | none |
+All PRs should:
+- Pass tests with >= 90% coverage
+- Follow conventional commit messages
+- Have clear return types on all functions
+- Include tests for new code
 
-## Project Structure
+## Session History
 
-```
-src/agentwarehouses/
-  models/           — Pydantic 2.0 data models (19 modules, 125 types)
-  spiders/          — Scrapy spider implementations
-  pipelines/        — orjson writer, stats validator
-  items.py          — DocPageItem schema
-  log.py            — colorlog logger + OTEL config
-  settings.py       — Scrapy settings (Claudebot config)
-tests/
-  conftest.py       — Shared fixtures + auto-markers
-  test_spider.py    — Spider unit + integration tests
-  test_pipelines.py — Pipeline tests
-  test_log.py       — Logger + OTEL tests
-  test_models.py    — Pydantic model validation (40 tests)
-  test_eval_schema.py — AgentSkills.io eval validation
-scripts/
-  generate_crud_skills.py — Generates 36 CRUD skills from profiles
-  install_pkgs.sh         — SessionStart hook for dependency install
-.claude/
-  agents/           — 10 persona subagents + 2 specialist agents
-  skills/           — /crawl-audit, /think, /advisors, 36 CRUD skills
-  hooks/            — post-edit-lint, log-tool-sizes
-  rules/            — crawl-guidelines
-  sessions/         — Session transcripts
-```
-
-## Adding a New Model
-
-1. Create `src/agentwarehouses/models/{resource}.py`
-2. Inherit from `BaseModel` (strict) or `LenientModel` (allows extras)
-3. Add re-exports to `src/agentwarehouses/models/__init__.py`
-4. Write tests in `tests/test_models.py`
-5. Run `make ci` to verify
-
-## Adding a New CRUD Skill
-
-1. Add resource profile to `scripts/generate_crud_skills.py` in the `RESOURCES` dict
-2. Run `make generate-skills`
-3. Run `make test-evals` to validate generated evals
-4. Optionally hand-edit the generated SKILL.md for richer content
-
-## Adding a New Subagent
-
-1. Create `.claude/agents/{name}.md` with YAML frontmatter:
-   ```yaml
-   ---
-   name: agent-name
-   description: >
-     What this agent does and when to invoke it
-   tools: Read, Grep, Glob, Bash
-   model: opus
-   ---
-   ```
-2. Write the system prompt body after the closing `---`
-3. Include the emotional calibration section (see existing agents for template)
-4. Add the agent to the `/advisors` skill if it's a general-purpose advisor
-
-## SessionStart Hook
-
-The project includes a SessionStart hook that runs `make install-dev` on both local and cloud sessions. This ensures dependencies are always current. See `.claude/settings.json` and `scripts/install_pkgs.sh`.
+Development session transcripts are stored in `.claude/sessions/` for reference and reproducibility.
