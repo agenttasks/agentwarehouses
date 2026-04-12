@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=75.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentwarehouses"
+version = "0.1.0"
+description = "Scrapy sitemap crawler for llms.txt documentation pages"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+dependencies = [
+    "scrapy>=2.12,<3.0",
+    "orjson>=3.10,<4.0",
+    "rbloom>=1.5,<2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "pytest>=8.0",
+]
+
+[project.entry-points."scrapy"]
+settings = "agentwarehouses.settings"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
