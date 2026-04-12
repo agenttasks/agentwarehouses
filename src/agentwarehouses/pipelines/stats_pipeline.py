@@ -1,6 +1,11 @@
-import logging
+from __future__ import annotations
 
-logger = logging.getLogger(__name__)
+import logging
+from typing import Any
+
+import scrapy
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class StatsValidatorPipeline:
@@ -11,17 +16,17 @@ class StatsValidatorPipeline:
     are logged as warnings for investigation.
     """
 
-    PASS_THRESHOLD = 3  # out of 4
+    PASS_THRESHOLD: int = 3  # out of 4
 
-    def __init__(self):
-        self.total = 0
-        self.passed = 0
-        self.failed_urls = []
+    def __init__(self) -> None:
+        self.total: int = 0
+        self.passed: int = 0
+        self.failed_urls: list[dict[str, Any]] = []
 
-    def process_item(self, item, spider):
+    def process_item(self, item: Any, spider: scrapy.Spider) -> Any:
         self.total += 1
-        score = 0
-        issues = []
+        score: int = 0
+        issues: list[str] = []
 
         # Criterion 1: title extracted
         if item.get("title"):
@@ -36,14 +41,14 @@ class StatsValidatorPipeline:
             issues.append("missing_description")
 
         # Criterion 3: body is substantive (>100 chars)
-        body_len = item.get("content_length", 0)
+        body_len: int = item.get("content_length", 0)
         if body_len > 100:
             score += 1
         else:
             issues.append(f"short_body({body_len})")
 
         # Criterion 4: headings structure present
-        headings = item.get("headings", [])
+        headings: list[Any] = item.get("headings", [])
         if len(headings) >= 2:
             score += 1
         else:
@@ -57,7 +62,7 @@ class StatsValidatorPipeline:
 
         return item
 
-    def close_spider(self, spider):
+    def close_spider(self, spider: scrapy.Spider) -> None:
         spider.logger.info(
             "Quality gate: %d/%d passed (threshold=%d/4), %d flagged",
             self.passed,

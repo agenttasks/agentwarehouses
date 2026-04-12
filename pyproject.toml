@@ -24,6 +24,9 @@ dev = [
     "ruff>=0.8",
     "mypy>=1.13",
     "pytest>=8.0",
+    "pytest-cov>=7.0",
+    "pytest-xdist>=3.5",
+    "pytest-timeout>=2.3",
     "pydantic>=2.9,<4.0",
 ]
 
@@ -48,3 +51,31 @@ select = ["E", "F", "I", "W"]
 [tool.mypy]
 python_version = "3.11"
 strict = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "unit: fast isolated unit tests",
+    "integration: tests requiring Scrapy or filesystem",
+    "models: Pydantic model validation tests",
+    "evals: AgentSkills.io eval schema tests",
+    "slow: tests that may take >5s",
+]
+addopts = [
+    "--strict-markers",
+    "--timeout=30",
+    "-x",
+]
+
+[tool.coverage.run]
+source = ["agentwarehouses"]
+omit = ["*/settings.py"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "\\.\\.\\.",
+]
