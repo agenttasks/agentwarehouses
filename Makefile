@@ -92,8 +92,20 @@ typecheck: ## Run mypy strict type checking
 # ──────────────────────────────────────────────
 
 .PHONY: crawl
-crawl: ## Run the llmstxt spider
+crawl: ## Run the llmstxt spider (code.claude.com)
 	scrapy crawl llmstxt
+
+.PHONY: crawl-neon
+crawl-neon: ## Crawl Neon docs (llms.txt + sitemap, rbloom dedup)
+	scrapy crawl neon_docs
+
+.PHONY: crawl-neon-all
+crawl-neon-all: ## Crawl all Neon sources (llms + sitemap + blog + pg tutorials)
+	scrapy crawl neon_docs -a sources=llms,sitemap,blog_sitemap,pg_sitemap
+
+.PHONY: neon-inventory
+neon-inventory: ## Print neondatabase repo inventory (194 repos, refactor candidates)
+	$(PYTHON) scripts/neon_repo_inventory.py
 
 .PHONY: crawl-audit
 crawl-audit: ## Audit crawl output for quality
