@@ -15,3 +15,6 @@ output/
 htmlcov/
 .venv/
 venv/
+
+# Node.js (Claude Code SDK + Agent SDK)
+node_modules/

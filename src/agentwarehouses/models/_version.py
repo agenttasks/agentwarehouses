@@ -6,6 +6,6 @@
 __version__ = "0.2.0"
 
 UPSTREAM_DEPS = {
-    "claude-agent-sdk": ">=0.1.0",
+    "claude-agent-sdk": ">=0.2.104",
     "mcp": ">=1.9.0",
 }
