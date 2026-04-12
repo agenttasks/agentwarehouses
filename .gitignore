@@ -15,3 +15,5 @@ output/
 htmlcov/
 .venv/
 venv/
+node_modules/
+package-lock.json
