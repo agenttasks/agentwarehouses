@@ -234,6 +234,15 @@ For more information about the above compiled landscape for 2025, please refer t
 ### Reverse ETL
 - [Multiwoven](https://github.com/Multiwoven/multiwoven) - A Reverse ETL open source alternative to Hightouch and RudderStack
 
+### GraphQL API Layer
+- [Hasura GraphQL Engine](https://github.com/hasura/graphql-engine) - An instant GraphQL and REST API engine with built-in authorization on data sources
+- [PostGraphile](https://github.com/graphile/crystal) - A high-performance auto-generated GraphQL API for PostgreSQL databases
+- [Apollo Router](https://github.com/apollographql/router) - A configurable high-performance GraphQL federation runtime written in Rust
+- [GraphQL Mesh](https://github.com/Urigo/graphql-mesh) - A GraphQL gateway framework for combining multiple API sources into a unified schema
+- [WunderGraph](https://github.com/wundergraph/wundergraph) - A developer platform for building APIs with native GraphQL, REST, and database integration
+- [Tailcall](https://github.com/tailcallhq/tailcall) - A high-performance GraphQL runtime for orchestrating and composing data APIs at scale
+- [Graphweaver](https://github.com/exogee-technology/graphweaver) - A tool to build a GraphQL API backend from multiple data sources
+
 
 ## DATA PROCESSING AND COMPUTATION
 
@@ -322,6 +331,12 @@ For more information about the above compiled landscape for 2025, please refer t
 ### Data Modeling
 - [dbt](https://github.com/dbt-labs/dbt-core) - A data modeling and transformation tool for data pipelines
 - [SQLMesh](https://github.com/TobikoData/sqlmesh) - A data transformation and modeling framework that is backwards compatible with dbt
+
+### GraphQL Schema & Development
+- [GraphQL Code Generator](https://github.com/dotansimha/graphql-code-generator) - A tool for generating typed code from GraphQL schemas and operations
+- [Strawberry GraphQL](https://github.com/strawberry-graphql/strawberry) - A Python GraphQL library based on dataclasses for building type-safe data APIs
+- [gqlgen](https://github.com/99designs/gqlgen) - A Go library for building GraphQL servers with a schema-first approach
+- [GraphQL Inspector](https://github.com/kamilkisiela/graphql-inspector) - A tool for validating, diffing, and monitoring changes to GraphQL schemas
 
 ### Pipeline Observability
 - [Elementry](https://github.com/elementary-data/elementary) - A dbt-native data observability solution to monitor data pipelines
@@ -423,6 +438,8 @@ For more information about the above compiled landscape for 2025, please refer t
 - [Jupyter](https://github.com/jupyter/notebook) - A popular interactive web-based notebook application
 - [IPython](https://github.com/ipython/ipython) - An enhanced interactive Python shell for data analysis
 - [Datasette](https://github.com/simonw/datasette) - A tool for exploring and publishing data 
+- [GraphiQL](https://github.com/graphql/graphiql) - An in-browser IDE for exploring, querying, and documenting GraphQL APIs
+- [Apollo Studio Explorer](https://github.com/apollographql/embeddable-explorer) - An embeddable GraphQL query explorer for building and testing operations
 
 ### MPP Query Engine
 - [Apache Hive](https://github.com/apache/hive) - A data warehousing and MPP engine on top of Hadoop
@@ -438,6 +455,8 @@ For more information about the above compiled landscape for 2025, please refer t
 - [Apache Linkis](https://github.com/apache/linkis) - A computation middleware to facilitate connection and orchestration between applications and data engines
 - [Apache Gluten](https://github.com/apache/incubator-gluten) - A middle layer for offloading JVM-based SQL engines execution to native engines
 - [Apache OpenDAL](https://github.com/apache/opendal) - An open data access Llyer that enables seamless interaction with diverse storage services
+- [Apollo Federation](https://github.com/apollographql/federation) - A GraphQL architecture for composing multiple services into a unified supergraph
+- [Grafbase](https://github.com/grafbase/grafbase) - A self-hosted GraphQL federation platform serving as a unified data access layer
 
 ### Data Sharing
 - [delta-sharing](https://github.com/delta-io/delta-sharing) - An open protocol for secure real-time exchange of large datasets
