@@ -1,0 +1,25 @@
+# agentwarehouses — Session Progress
+
+## 2026-04-12: Initial package + blog-pattern improvements
+
+### Completed
+- Python package structure with pyproject.toml (scrapy, orjson, rbloom)
+- Scrapy llmstxt spider: fetches llms.txt, extracts .md URLs, Bloom dedup, markdown extraction
+- OrjsonWriterPipeline: writes output/docs.jsonl as JSONL
+- Settings: Claudebot/2.1.104 UA, AutoThrottle, CONCURRENT_REQUESTS=16
+- CLAUDE.md: project conventions under 200 lines
+- Skills: /crawl-audit, /think, /tool-design-checklist
+- Subagents: page-analyzer (quality analysis), crawl-reviewer (code review)
+- Hooks: SessionStart (install deps), PostToolUse/Edit (ruff lint)
+- .claude/rules/crawl-guidelines.md
+- scripts/install_pkgs.sh (CLAUDE_CODE_REMOTE aware)
+
+### In Progress
+- Improving spider with error-proof patterns (errback, structured extraction)
+- Adding StatsValidatorPipeline for crawl quality grading
+- Adding verification tests
+
+### Next Session
+- Start with: `git log --oneline -5 && cat claude-progress.txt`
+- Priority: run full crawl, validate with /crawl-audit, fix any extraction issues
+- Consider: adding more spiders for other llms.txt sources

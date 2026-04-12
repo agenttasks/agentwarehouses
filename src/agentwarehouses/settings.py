@@ -38,8 +38,9 @@ COOKIES_ENABLED = False
 # Disable Telnet Console (not needed)
 TELNETCONSOLE_ENABLED = False
 
-# Enable pipelines
+# Enable pipelines (lower number = higher priority)
 ITEM_PIPELINES = {
+    "agentwarehouses.pipelines.stats_pipeline.StatsValidatorPipeline": 200,
     "agentwarehouses.pipelines.orjson_pipeline.OrjsonWriterPipeline": 300,
 }
 
