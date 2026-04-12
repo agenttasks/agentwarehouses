@@ -19,6 +19,7 @@ pytest tests/                   # test
 - **Serialization**: orjson pipeline writes `output/docs.jsonl` as newline-delimited JSON
 - **Quality gate**: `StatsValidatorPipeline` grades each crawled page for completeness
 - **Concurrency**: AutoThrottle adapts rate; `CONCURRENT_REQUESTS=16`, `PER_DOMAIN=8`
+- **Logging**: colorlog-based `agentwarehouses.log.get_logger()` for colored terminal output
 
 ## Conventions
 
@@ -36,6 +37,21 @@ pytest tests/                   # test
 3. **Implement**: one feature at a time, commit after each
 4. **Verify**: run `scrapy crawl llmstxt`, check `output/docs.jsonl`, run `pytest`
 
+## Emotional Calibration
+
+Anthropic's interpretability research found that Claude has functional emotion
+representations that causally influence behavior:
+
+- "Desperate" vector activation increases reward hacking and hacky workarounds.
+  It spikes during repeated failures and context pressure.
+- "Calm" vector activation reduces these failure modes.
+
+**Rules for this project:**
+- After 2 consecutive failed approaches, STOP. Use /think to reframe.
+- When context fills up, use a subagent rather than rushing to finish.
+- When tests fail, respond with curiosity (what broke?) not urgency (make it pass).
+- Use the advisor subagents when stuck — see `/advisors` skill for selection guide.
+
 ## Context Management
 
 - Use `/compact` between unrelated tasks
@@ -49,12 +65,13 @@ pytest tests/                   # test
 src/agentwarehouses/
   settings.py          — Scrapy settings (Claudebot config, concurrency, pipelines)
   items.py             — DocPageItem schema
+  log.py               — Reusable colorlog logger + OTEL config reference
   spiders/             — Spider implementations
   pipelines/           — orjson writer, stats validator
 .claude/
-  settings.json        — Hooks (SessionStart, PostToolUse, Compaction)
-  skills/              — Invocable skills (/crawl-audit, /think)
-  agents/              — Subagents (page-analyzer, crawl-reviewer)
+  settings.json        — Hooks (SessionStart, PostToolUse)
+  skills/              — /crawl-audit, /think, /tool-design-checklist, /advisors
+  agents/              — shannon, thorp, simons, bezos, jobs, amodei, cherny, musk, brown, su
   rules/               — Project rules
-  hooks/               — Hook scripts
+  hooks/               — Hook scripts (post-edit-lint, log-tool-sizes)
 ```

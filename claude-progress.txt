@@ -1,25 +1,39 @@
 # agentwarehouses — Session Progress
 
-## 2026-04-12: Initial package + blog-pattern improvements
+## 2026-04-12: Session 2 — Logger, OTEL telemetry, persona subagents
+
+### Completed
+- colorlog-based reusable logger: `agentwarehouses.log.get_logger()`
+- OTEL telemetry config reference: `get_otel_config()` with all Claude Code 2.1.104 vars
+- OTEL metrics/events/attributes catalogs: CLAUDE_CODE_METRICS, CLAUDE_CODE_EVENTS
+- 10 persona subagents with emotion-aware system prompts:
+  - SHANNON: information-theoretic problem decomposition, creative reframing
+  - THORP: probability-driven verification, Kelly criterion risk management
+  - SIMONS: pattern recognition, parallel exploration, strategic planning
+  - BEZOS: data-driven operational strategy, resource allocation, cash flow focus
+  - JOBS: product usability, ruthless simplification, end-to-end experience
+  - AMODEI: AI vision, safety-capability balance, harness assumption questioning
+  - CHERNY: code quality, type safety, static analysis enforcement
+  - MUSK: kaizen five-step algorithm, waste elimination, cycle time compression
+  - BROWN: operational excellence, reliability engineering, failure recovery
+  - SU: human resources, team structure, collaboration patterns
+- /advisors skill: orchestration guide for all 10 personas with composition patterns
+- CLAUDE.md updated with emotional calibration section
+- 32 tests passing, all lint clean
+
+## 2026-04-12: Session 1 — Initial package setup
 
 ### Completed
 - Python package structure with pyproject.toml (scrapy, orjson, rbloom)
-- Scrapy llmstxt spider: fetches llms.txt, extracts .md URLs, Bloom dedup, markdown extraction
-- OrjsonWriterPipeline: writes output/docs.jsonl as JSONL
+- Scrapy llmstxt spider with rbloom dedup and errback error handling
+- OrjsonWriterPipeline + StatsValidatorPipeline
 - Settings: Claudebot/2.1.104 UA, AutoThrottle, CONCURRENT_REQUESTS=16
-- CLAUDE.md: project conventions under 200 lines
 - Skills: /crawl-audit, /think, /tool-design-checklist
-- Subagents: page-analyzer (quality analysis), crawl-reviewer (code review)
-- Hooks: SessionStart (install deps), PostToolUse/Edit (ruff lint)
+- Subagents: page-analyzer, crawl-reviewer
+- Hooks: SessionStart, PostToolUse/Edit (ruff lint)
 - .claude/rules/crawl-guidelines.md
-- scripts/install_pkgs.sh (CLAUDE_CODE_REMOTE aware)
-
-### In Progress
-- Improving spider with error-proof patterns (errback, structured extraction)
-- Adding StatsValidatorPipeline for crawl quality grading
-- Adding verification tests
 
 ### Next Session
 - Start with: `git log --oneline -5 && cat claude-progress.txt`
-- Priority: run full crawl, validate with /crawl-audit, fix any extraction issues
-- Consider: adding more spiders for other llms.txt sources
+- Priority: run full crawl, validate with /crawl-audit
+- Consider: OTEL collector integration, additional spiders

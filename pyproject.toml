@@ -13,6 +13,7 @@ dependencies = [
     "scrapy>=2.12,<3.0",
     "orjson>=3.10,<4.0",
     "rbloom>=1.5,<2.0",
+    "colorlog>=6.10,<7.0",
 ]
 
 [project.optional-dependencies]

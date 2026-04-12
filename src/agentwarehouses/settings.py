@@ -51,6 +51,13 @@ FEED_EXPORT_ENCODING = "utf-8"
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 
-# Logging
+# Logging — colorlog integration
+# Scrapy uses its own log setup; we configure compatible defaults here
+# and provide agentwarehouses.log.get_logger() for colorized output
 LOG_LEVEL = "INFO"
 LOG_FORMAT = "%(asctime)s [%(name)s] %(levelname)s: %(message)s"
+LOG_DATEFORMAT = "%Y-%m-%d %H:%M:%S"
+
+# OTEL telemetry (Claude Code 2.1.104 compatible)
+# Set CLAUDE_CODE_ENABLE_TELEMETRY=1 to activate
+# See agentwarehouses.log.get_otel_config() for full config reference
