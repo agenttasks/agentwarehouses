@@ -40,16 +40,19 @@ Exit codes:
   3  GraphQL errors in response""",
     )
     conn = p.add_argument_group("connection")
-    conn.add_argument("--database-url", default=os.environ.get("DATABASE_URL"),
-                       help="Postgres connection URL (default: $DATABASE_URL)")
+    conn.add_argument(
+        "--database-url",
+        default=os.environ.get("DATABASE_URL"),
+        help="Postgres connection URL (default: $DATABASE_URL)",
+    )
     conn.add_argument("--host", help="Database host (alternative to --database-url)")
     conn.add_argument("--port", type=int, default=5432, help="Database port (default: 5432)")
     conn.add_argument("--dbname", help="Database name")
     conn.add_argument("--user", help="Database user")
-    conn.add_argument("--password", default=os.environ.get("NEON_PASSWORD"),
-                       help="Database password (default: $NEON_PASSWORD)")
-    conn.add_argument("--sslmode", default="require",
-                       help="SSL mode (default: require, recommended for Neon)")
+    conn.add_argument(
+        "--password", default=os.environ.get("NEON_PASSWORD"), help="Database password (default: $NEON_PASSWORD)"
+    )
+    conn.add_argument("--sslmode", default="require", help="SSL mode (default: require, recommended for Neon)")
 
     query_group = p.add_argument_group("query")
     query_group.add_argument("--query", help="GraphQL query string")
@@ -58,16 +61,14 @@ Exit codes:
     query_group.add_argument("--operation", help="Operation name for multi-operation documents")
 
     actions = p.add_argument_group("actions")
-    actions.add_argument("--ensure-extension", action="store_true",
-                          help="Create pg_graphql extension if not exists, then exit")
-    actions.add_argument("--introspect", action="store_true",
-                          help="Run introspection query and output schema")
-    actions.add_argument("--list-types", action="store_true",
-                          help="List all GraphQL types exposed by pg_graphql")
+    actions.add_argument(
+        "--ensure-extension", action="store_true", help="Create pg_graphql extension if not exists, then exit"
+    )
+    actions.add_argument("--introspect", action="store_true", help="Run introspection query and output schema")
+    actions.add_argument("--list-types", action="store_true", help="List all GraphQL types exposed by pg_graphql")
 
     p.add_argument("--output", help="Write response to file instead of stdout")
-    p.add_argument("--raw", action="store_true",
-                    help="Output raw SQL result without JSON parsing")
+    p.add_argument("--raw", action="store_true", help="Output raw SQL result without JSON parsing")
     return p
 
 
@@ -100,7 +101,10 @@ def get_connection_string(args: argparse.Namespace) -> str:
     if args.host and args.dbname and args.user:
         password_part = f":{args.password}" if args.password else ""
         return f"postgresql://{args.user}{password_part}@{args.host}:{args.port}/{args.dbname}?sslmode={args.sslmode}"
-    print("Error: --database-url (or $DATABASE_URL) is required, or provide --host, --dbname, and --user.", file=sys.stderr)
+    print(
+        "Error: --database-url (or $DATABASE_URL) is required, or provide --host, --dbname, and --user.",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 
@@ -145,7 +149,15 @@ def main() -> None:
                 if row:
                     print(json.dumps({"status": "ok", "extension": row[0], "version": row[1]}, indent=2))
                 else:
-                    print(json.dumps({"status": "error", "message": "Extension creation reported success but extension not found"}, indent=2))
+                    print(
+                        json.dumps(
+                            {
+                                "status": "error",
+                                "message": "Extension creation reported success but extension not found",
+                            },
+                            indent=2,
+                        )
+                    )
                     sys.exit(2)
             return
 
@@ -161,11 +173,13 @@ def main() -> None:
 
         # pg_graphql resolves queries via the graphql.resolve() SQL function
         sql = "SELECT graphql.resolve($1);"
-        gql_payload = json.dumps({
-            "query": query,
-            "variables": variables,
-            **({"operationName": args.operation} if args.operation else {}),
-        })
+        gql_payload = json.dumps(
+            {
+                "query": query,
+                "variables": variables,
+                **({"operationName": args.operation} if args.operation else {}),
+            }
+        )
 
         with conn.cursor() as cur:
             cur.execute(sql, (gql_payload,))
@@ -204,7 +218,10 @@ def main() -> None:
 
     except psycopg.errors.UndefinedFunction:
         print("Error: graphql.resolve() function not found.", file=sys.stderr)
-        print("Hint: Enable pg_graphql first: uv run scripts/neon_pg_graphql.py --database-url $DATABASE_URL --ensure-extension", file=sys.stderr)
+        print(
+            "Hint: Enable pg_graphql first: uv run scripts/neon_pg_graphql.py --database-url $DATABASE_URL --ensure-extension",
+            file=sys.stderr,
+        )
         sys.exit(2)
     except psycopg.Error as e:
         print(f"Error: Database error: {e}", file=sys.stderr)

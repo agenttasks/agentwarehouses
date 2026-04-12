@@ -71,16 +71,27 @@ METRICS = [
 
 # All 5 Claude Code events
 EVENTS = [
-    EventDefinition(name="claude_code.user_prompt", description="User submits prompt",
-                    attributes=["prompt_length", "prompt"]),
-    EventDefinition(name="claude_code.tool_result", description="Tool completes",
-                    attributes=["tool_name", "success", "duration_ms"]),
-    EventDefinition(name="claude_code.api_request", description="API call to Claude",
-                    attributes=["model", "cost_usd", "duration_ms", "input_tokens", "output_tokens"]),
-    EventDefinition(name="claude_code.api_error", description="API request fails",
-                    attributes=["model", "error", "status_code", "attempt"]),
-    EventDefinition(name="claude_code.tool_decision", description="Tool permission decision",
-                    attributes=["tool_name", "decision", "source"]),
+    EventDefinition(
+        name="claude_code.user_prompt", description="User submits prompt", attributes=["prompt_length", "prompt"]
+    ),
+    EventDefinition(
+        name="claude_code.tool_result", description="Tool completes", attributes=["tool_name", "success", "duration_ms"]
+    ),
+    EventDefinition(
+        name="claude_code.api_request",
+        description="API call to Claude",
+        attributes=["model", "cost_usd", "duration_ms", "input_tokens", "output_tokens"],
+    ),
+    EventDefinition(
+        name="claude_code.api_error",
+        description="API request fails",
+        attributes=["model", "error", "status_code", "attempt"],
+    ),
+    EventDefinition(
+        name="claude_code.tool_decision",
+        description="Tool permission decision",
+        attributes=["tool_name", "decision", "source"],
+    ),
 ]
 
 RESOURCE_ATTRS = {

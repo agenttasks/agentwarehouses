@@ -53,21 +53,22 @@ Exit codes:
   3  Entity not found (for read/update/delete)""",
     )
     p.add_argument("--interface", required=True, choices=["graphql", "api", "sdk", "cli"])
-    p.add_argument("--entity", required=True,
-                    choices=list(ENTITY_API_MAP.keys()))
+    p.add_argument("--entity", required=True, choices=list(ENTITY_API_MAP.keys()))
     p.add_argument("--operation", required=True, choices=["create", "read", "update", "delete", "list"])
     p.add_argument("--id", help="Entity ID (for read/update/delete)")
     p.add_argument("--version", type=int, help="Version number (for update)")
     p.add_argument("--params", help="JSON parameters for create/update")
-    p.add_argument("--endpoint", default=os.environ.get("GRAPHQL_ENDPOINT"),
-                    help="GraphQL endpoint (for graphql interface)")
+    p.add_argument(
+        "--endpoint", default=os.environ.get("GRAPHQL_ENDPOINT"), help="GraphQL endpoint (for graphql interface)"
+    )
     p.add_argument("--dry-run", action="store_true", help="Show what would be executed")
     p.add_argument("--output", help="Write result to file")
     return p
 
 
-def run_cli(entity: str, operation: str, entity_id: str | None,
-            version: int | None, params: dict | None, dry_run: bool) -> dict:
+def run_cli(
+    entity: str, operation: str, entity_id: str | None, version: int | None, params: dict | None, dry_run: bool
+) -> dict:
     """Execute via ant CLI."""
     api_entity = ENTITY_API_MAP[entity].replace("-", "_")
     cmd = ["ant", f"beta:{api_entity}"]
@@ -99,9 +100,7 @@ def run_cli(entity: str, operation: str, entity_id: str | None,
         return {"dry_run": True, "command": cmd, "stdin": stdin_data}
 
     try:
-        result = subprocess.run(
-            cmd, input=stdin_data, capture_output=True, text=True, timeout=30
-        )
+        result = subprocess.run(cmd, input=stdin_data, capture_output=True, text=True, timeout=30)
         if result.returncode != 0:
             return {"error": result.stderr.strip(), "exit_code": result.returncode}
         try:
@@ -114,8 +113,9 @@ def run_cli(entity: str, operation: str, entity_id: str | None,
         return {"error": "Command timed out after 30s"}
 
 
-def run_api(entity: str, operation: str, entity_id: str | None,
-            version: int | None, params: dict | None, dry_run: bool) -> dict:
+def run_api(
+    entity: str, operation: str, entity_id: str | None, version: int | None, params: dict | None, dry_run: bool
+) -> dict:
     """Execute via REST API."""
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key and not dry_run:
@@ -163,8 +163,9 @@ def run_api(entity: str, operation: str, entity_id: str | None,
         return {"error": f"Connection failed: {e}"}
 
 
-def run_sdk(entity: str, operation: str, entity_id: str | None,
-            version: int | None, params: dict | None, dry_run: bool) -> dict:
+def run_sdk(
+    entity: str, operation: str, entity_id: str | None, version: int | None, params: dict | None, dry_run: bool
+) -> dict:
     """Execute via Python SDK."""
     api_entity = ENTITY_API_MAP[entity].replace("-", "_")
 
@@ -199,10 +200,7 @@ else:
     print(json.dumps({{"result": str(result)}}))
 """
     try:
-        result = subprocess.run(
-            [sys.executable, "-c", code],
-            capture_output=True, text=True, timeout=30
-        )
+        result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=30)
         if result.returncode != 0:
             return {"error": result.stderr.strip()}
         return json.loads(result.stdout)
@@ -212,8 +210,9 @@ else:
         return {"error": "Invalid JSON from SDK", "raw": result.stdout[:500]}
 
 
-def run_graphql(entity: str, operation: str, entity_id: str | None,
-                params: dict | None, endpoint: str | None, dry_run: bool) -> dict:
+def run_graphql(
+    entity: str, operation: str, entity_id: str | None, params: dict | None, endpoint: str | None, dry_run: bool
+) -> dict:
     """Execute via GraphQL mutations/queries."""
     if not endpoint and not dry_run:
         return {"error": "GRAPHQL_ENDPOINT is required for graphql interface"}
@@ -222,14 +221,14 @@ def run_graphql(entity: str, operation: str, entity_id: str | None,
     pascal = "".join(w.capitalize() for w in singular.replace("-", " ").split())
 
     if operation == "create":
-        query = f'mutation {{ create{pascal}(input: $input) {{ id name }} }}'
+        query = f"mutation {{ create{pascal}(input: $input) {{ id name }} }}"
         variables = {"input": params or {}}
     elif operation == "read":
         query = f'query {{ {singular}(id: "{entity_id}") {{ id name description }} }}'
         variables = {}
     elif operation == "list":
         collection = entity.replace("-", "_") + "Collection"
-        query = f'query {{ {collection}(first: 20) {{ edges {{ node {{ id name }} }} }} }}'
+        query = f"query {{ {collection}(first: 20) {{ edges {{ node {{ id name }} }} }} }}"
         variables = {}
     elif operation == "update":
         query = f'mutation {{ update{pascal}(id: "{entity_id}", input: $input) {{ id name }} }}'
@@ -291,4 +290,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     from pathlib import Path
+
     main()

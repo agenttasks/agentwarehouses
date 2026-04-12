@@ -55,9 +55,7 @@ class TestEvalSchema:
         for path in self._find_eval_files():
             data = orjson.loads(path.read_bytes())
             dir_name = path.parent.parent.name
-            assert data["skill_name"] == dir_name, (
-                f"{path}: skill_name '{data['skill_name']}' != dir '{dir_name}'"
-            )
+            assert data["skill_name"] == dir_name, f"{path}: skill_name '{data['skill_name']}' != dir '{dir_name}'"
 
     def test_prompts_are_realistic_length(self):
         for path in self._find_eval_files():

@@ -19,7 +19,6 @@ import sys
 
 import httpx
 
-
 ACTIONS = {
     "export-metadata": "Export full Hasura metadata as JSON",
     "reload-metadata": "Reload metadata from the database",
@@ -56,8 +55,11 @@ Exit codes:
     )
     p.add_argument("--endpoint", required=True, help="Hasura endpoint base URL (e.g. https://hasura.example.com)")
     p.add_argument("--action", required=True, choices=list(ACTIONS.keys()), help="Action to perform")
-    p.add_argument("--admin-secret", default=os.environ.get("HASURA_ADMIN_SECRET"),
-                    help="Hasura admin secret (default: $HASURA_ADMIN_SECRET)")
+    p.add_argument(
+        "--admin-secret",
+        default=os.environ.get("HASURA_ADMIN_SECRET"),
+        help="Hasura admin secret (default: $HASURA_ADMIN_SECRET)",
+    )
     p.add_argument("--table", help="Table name (for track-table/untrack-table)")
     p.add_argument("--schema", default="public", help="Database schema (default: public)")
     p.add_argument("--source", default="default", help="Hasura data source name (default: default)")
@@ -69,8 +71,7 @@ Exit codes:
     return p
 
 
-def make_request(endpoint: str, path: str, body: dict, admin_secret: str | None,
-                 dry_run: bool = False) -> dict:
+def make_request(endpoint: str, path: str, body: dict, admin_secret: str | None, dry_run: bool = False) -> dict:
     url = f"{endpoint.rstrip('/')}{path}"
     headers = {"Content-Type": "application/json"}
     if admin_secret:
@@ -110,8 +111,15 @@ def main() -> None:
         try:
             with httpx.Client(timeout=10) as client:
                 resp = client.get(url)
-                print(json.dumps({"status": "healthy" if resp.status_code == 200 else "unhealthy",
-                                   "http_status": resp.status_code}, indent=2))
+                print(
+                    json.dumps(
+                        {
+                            "status": "healthy" if resp.status_code == 200 else "unhealthy",
+                            "http_status": resp.status_code,
+                        },
+                        indent=2,
+                    )
+                )
         except httpx.ConnectError as e:
             print(json.dumps({"status": "unreachable", "error": str(e)}, indent=2))
             sys.exit(2)
@@ -124,66 +132,104 @@ def main() -> None:
     result: dict = {}
 
     if args.action == "export-metadata":
-        result = make_request(args.endpoint, "/v1/metadata", {
-            "type": "export_metadata",
-            "version": 2,
-            "args": {},
-        }, args.admin_secret, args.dry_run)
+        result = make_request(
+            args.endpoint,
+            "/v1/metadata",
+            {
+                "type": "export_metadata",
+                "version": 2,
+                "args": {},
+            },
+            args.admin_secret,
+            args.dry_run,
+        )
 
     elif args.action == "reload-metadata":
-        result = make_request(args.endpoint, "/v1/metadata", {
-            "type": "reload_metadata",
-            "args": {"reload_remote_schemas": True},
-        }, args.admin_secret, args.dry_run)
+        result = make_request(
+            args.endpoint,
+            "/v1/metadata",
+            {
+                "type": "reload_metadata",
+                "args": {"reload_remote_schemas": True},
+            },
+            args.admin_secret,
+            args.dry_run,
+        )
 
     elif args.action == "clear-metadata":
         if not args.confirm:
             print("Error: --confirm is required for clear-metadata (destructive operation).", file=sys.stderr)
             sys.exit(1)
-        result = make_request(args.endpoint, "/v1/metadata", {
-            "type": "clear_metadata",
-            "args": {},
-        }, args.admin_secret, args.dry_run)
+        result = make_request(
+            args.endpoint,
+            "/v1/metadata",
+            {
+                "type": "clear_metadata",
+                "args": {},
+            },
+            args.admin_secret,
+            args.dry_run,
+        )
 
     elif args.action == "track-table":
         if not args.table:
             print("Error: --table is required for track-table.", file=sys.stderr)
             sys.exit(1)
-        result = make_request(args.endpoint, "/v1/metadata", {
-            "type": "pg_track_table",
-            "args": {
-                "source": args.source,
-                "table": {"schema": args.schema, "name": args.table},
+        result = make_request(
+            args.endpoint,
+            "/v1/metadata",
+            {
+                "type": "pg_track_table",
+                "args": {
+                    "source": args.source,
+                    "table": {"schema": args.schema, "name": args.table},
+                },
             },
-        }, args.admin_secret, args.dry_run)
+            args.admin_secret,
+            args.dry_run,
+        )
 
     elif args.action == "untrack-table":
         if not args.table:
             print("Error: --table is required for untrack-table.", file=sys.stderr)
             sys.exit(1)
-        result = make_request(args.endpoint, "/v1/metadata", {
-            "type": "pg_untrack_table",
-            "args": {
-                "source": args.source,
-                "table": {"schema": args.schema, "name": args.table},
+        result = make_request(
+            args.endpoint,
+            "/v1/metadata",
+            {
+                "type": "pg_untrack_table",
+                "args": {
+                    "source": args.source,
+                    "table": {"schema": args.schema, "name": args.table},
+                },
             },
-        }, args.admin_secret, args.dry_run)
+            args.admin_secret,
+            args.dry_run,
+        )
 
     elif args.action == "list-tables":
-        metadata = make_request(args.endpoint, "/v1/metadata", {
-            "type": "export_metadata",
-            "version": 2,
-            "args": {},
-        }, args.admin_secret, args.dry_run)
+        metadata = make_request(
+            args.endpoint,
+            "/v1/metadata",
+            {
+                "type": "export_metadata",
+                "version": 2,
+                "args": {},
+            },
+            args.admin_secret,
+            args.dry_run,
+        )
         tables = []
         for source in metadata.get("metadata", {}).get("sources", []):
             for table in source.get("tables", []):
                 t = table.get("table", {})
-                tables.append({
-                    "source": source.get("name"),
-                    "schema": t.get("schema"),
-                    "name": t.get("name"),
-                })
+                tables.append(
+                    {
+                        "source": source.get("name"),
+                        "schema": t.get("schema"),
+                        "name": t.get("name"),
+                    }
+                )
         result = {"tables": tables, "count": len(tables)}
 
     elif args.action == "run-sql":
@@ -198,10 +244,16 @@ def main() -> None:
         if not sql:
             print("Error: --sql or --sql-file is required for run-sql.", file=sys.stderr)
             sys.exit(1)
-        result = make_request(args.endpoint, "/v2/query", {
-            "type": "run_sql",
-            "args": {"source": args.source, "sql": sql},
-        }, args.admin_secret, args.dry_run)
+        result = make_request(
+            args.endpoint,
+            "/v2/query",
+            {
+                "type": "run_sql",
+                "args": {"source": args.source, "sql": sql},
+            },
+            args.admin_secret,
+            args.dry_run,
+        )
 
     output = json.dumps(result, indent=2)
     if args.output:

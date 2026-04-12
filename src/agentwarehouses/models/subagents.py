@@ -40,7 +40,7 @@ class AgentFrontmatter(BaseModel):
     memory: MemoryScope | None = None
     mcp_servers: list[str | dict[str, Any]] | None = Field(None, alias="mcpServers")
     context: ContextMode | None = None
-    hooks: dict[str, list[dict]] | None = None
+    hooks: dict[str, list[dict[str, Any]]] | None = None
     permission_mode: PermissionMode | None = Field(None, alias="permissionMode")
 
 

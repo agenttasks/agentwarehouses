@@ -73,7 +73,11 @@ class CommandHook(BaseModel):
     shell: str | None = Field(default=None, description="'bash' (default) or 'powershell'")
     async_: bool = Field(default=False, alias="async")
     timeout: int = Field(default=600, ge=1, description="Seconds before cancel")
-    if_: str | None = Field(default=None, alias="if", description="Permission rule filter (e.g. 'Bash(git *)')")
+    if_: str | None = Field(
+        default=None,
+        alias="if",
+        description="Permission rule filter (e.g. 'Bash(git *)')",
+    )
     status_message: str | None = Field(default=None, alias="statusMessage")
     once: bool | None = Field(default=None, description="Skills only: run once per session")
 
@@ -172,7 +176,8 @@ class PreToolUseDecision(BaseModel):
 
     hook_event_name: str = Field(default="PreToolUse", alias="hookEventName")
     permission_decision: str | None = Field(
-        default=None, alias="permissionDecision",
+        default=None,
+        alias="permissionDecision",
         description="'allow', 'deny', 'ask', or 'defer'",
     )
     permission_decision_reason: str | None = Field(default=None, alias="permissionDecisionReason")
@@ -187,9 +192,7 @@ class PermissionRequestDecision(BaseModel):
 
     behavior: str = Field(description="'allow' or 'deny'")
     updated_input: dict[str, Any] | None = Field(default=None, alias="updatedInput")
-    updated_permissions: list[PermissionUpdateEntry] = Field(
-        default_factory=list, alias="updatedPermissions"
-    )
+    updated_permissions: list[PermissionUpdateEntry] = Field(default_factory=list, alias="updatedPermissions")
 
 
 class PermissionUpdateEntry(BaseModel):

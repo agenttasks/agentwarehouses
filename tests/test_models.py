@@ -87,8 +87,10 @@ class TestVersion:
 class TestToolModels:
     def test_tool_definition(self):
         td = ToolDefinition(
-            name="Bash", description="Execute commands",
-            permission_required=True, category=ToolCategory.CODE_EXECUTION,
+            name="Bash",
+            description="Execute commands",
+            permission_required=True,
+            category=ToolCategory.CODE_EXECUTION,
         )
         assert td.name == "Bash"
         assert td.permission_required is True
@@ -131,29 +133,38 @@ class TestHookModels:
         assert len(hm.hooks) == 1
 
     def test_hook_config(self):
-        hc = HookConfig(hooks={
-            "PostToolUse": [
-                HookMatcher(matcher="Edit", hooks=[
-                    CommandHookHandler(type="command", command="ruff check"),
-                ])
-            ]
-        })
+        hc = HookConfig(
+            hooks={
+                "PostToolUse": [
+                    HookMatcher(
+                        matcher="Edit",
+                        hooks=[
+                            CommandHookHandler(type="command", command="ruff check"),
+                        ],
+                    )
+                ]
+            }
+        )
         assert "PostToolUse" in hc.hooks
 
 
 class TestSubagentModels:
     def test_agent_frontmatter(self):
         af = AgentFrontmatter(
-            name="test-agent", description="A test agent",
-            tools=["Read", "Grep"], model=ModelTier.OPUS,
+            name="test-agent",
+            description="A test agent",
+            tools=["Read", "Grep"],
+            model=ModelTier.OPUS,
         )
         assert af.name == "test-agent"
         assert af.model == ModelTier.OPUS
 
     def test_agent_definition_sdk(self):
         ad = AgentDefinitionSDK(
-            description="Reviewer", prompt="You are a code reviewer.",
-            tools=["Read", "Grep", "Glob"], model=ModelTier.SONNET,
+            description="Reviewer",
+            prompt="You are a code reviewer.",
+            tools=["Read", "Grep", "Glob"],
+            model=ModelTier.SONNET,
         )
         assert ad.description == "Reviewer"
         assert ad.model == ModelTier.SONNET
@@ -177,7 +188,8 @@ class TestSkillModels:
 
     def test_eval_case(self):
         ec = SkillEvalCase(
-            id=1, prompt="Create a test agent",
+            id=1,
+            prompt="Create a test agent",
             expected_output="Agent file created",
             assertions=["File exists", "Frontmatter valid"],
         )
@@ -250,8 +262,12 @@ class TestSdkModels:
 
     def test_result_message(self):
         rm = ResultMessage(
-            subtype="success", duration_ms=1000, duration_api_ms=800,
-            is_error=False, num_turns=3, session_id="test-session",
+            subtype="success",
+            duration_ms=1000,
+            duration_api_ms=800,
+            is_error=False,
+            num_turns=3,
+            session_id="test-session",
             total_cost_usd=0.05,
         )
         assert rm.total_cost_usd == 0.05
@@ -296,7 +312,9 @@ class TestCommandModels:
 class TestEnvVarModels:
     def test_env_var_definition(self):
         ev = EnvVarDefinition(
-            name="ANTHROPIC_API_KEY", type=EnvVarType.STRING,
-            description="API key", category=EnvVarCategory.AUTHENTICATION,
+            name="ANTHROPIC_API_KEY",
+            type=EnvVarType.STRING,
+            description="API key",
+            category=EnvVarCategory.AUTHENTICATION,
         )
         assert ev.name == "ANTHROPIC_API_KEY"

@@ -31,8 +31,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--eval-id", required=True, help="Eval test case ID (e.g. cli-sessions-create)")
     p.add_argument("--evals-file", default="evals/evals.json", help="Path to evals.json")
     p.add_argument("--workspace", required=True, help="Workspace directory for this iteration")
-    p.add_argument("--mode", choices=["with_skill", "without_skill"], default="with_skill",
-                    help="Run mode (default: with_skill)")
+    p.add_argument(
+        "--mode", choices=["with_skill", "without_skill"], default="with_skill", help="Run mode (default: with_skill)"
+    )
     p.add_argument("--dry-run", action="store_true", help="Show what would be executed")
     return p
 
@@ -71,11 +72,15 @@ def main() -> None:
 
     # Build the crud_operations command
     cmd = [
-        sys.executable, "-m", "scripts.crud_operations" if False else
-        str(Path(__file__).parent / "crud_operations.py"),
-        "--interface", interface,
-        "--entity", entity,
-        "--operation", operation,
+        sys.executable,
+        "-m",
+        "scripts.crud_operations" if False else str(Path(__file__).parent / "crud_operations.py"),
+        "--interface",
+        interface,
+        "--entity",
+        entity,
+        "--operation",
+        operation,
     ]
 
     if operation in ("create", "update") and test_data:
@@ -87,12 +92,13 @@ def main() -> None:
     # Execute and time it
     print(f"Running: {args.eval_id} [{interface}/{entity}/{operation}] mode={args.mode}", file=sys.stderr)
     start = time.monotonic()
-    start_ns = time.time_ns()
 
     try:
         result = subprocess.run(
             ["uv", "run"] + cmd,
-            capture_output=True, text=True, timeout=60,
+            capture_output=True,
+            text=True,
+            timeout=60,
         )
         elapsed_ms = int((time.monotonic() - start) * 1000)
 
@@ -118,14 +124,19 @@ def main() -> None:
         # Save the eval metadata for grading
         (eval_dir / "eval_case.json").write_text(json.dumps(eval_case, indent=2) + "\n")
 
-        print(json.dumps({
-            "status": "completed",
-            "eval_id": args.eval_id,
-            "mode": args.mode,
-            "duration_ms": elapsed_ms,
-            "exit_code": result.returncode,
-            "output_dir": str(eval_dir),
-        }, indent=2))
+        print(
+            json.dumps(
+                {
+                    "status": "completed",
+                    "eval_id": args.eval_id,
+                    "mode": args.mode,
+                    "duration_ms": elapsed_ms,
+                    "exit_code": result.returncode,
+                    "output_dir": str(eval_dir),
+                },
+                indent=2,
+            )
+        )
 
     except subprocess.TimeoutExpired:
         elapsed_ms = int((time.monotonic() - start) * 1000)

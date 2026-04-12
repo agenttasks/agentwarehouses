@@ -102,6 +102,7 @@ class HookConfig(BaseModel):
 
 # Hook input models
 
+
 class BaseHookInput(LenientModel):
     session_id: str
     transcript_path: str
@@ -167,6 +168,7 @@ class NotificationInput(BaseHookInput):
 
 
 # Hook output model
+
 
 class HookSpecificOutput(LenientModel):
     hook_event_name: str = Field(alias="hookEventName")

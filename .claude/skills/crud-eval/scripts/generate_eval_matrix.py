@@ -18,8 +18,15 @@ from pathlib import Path
 INTERFACES = ["graphql", "api", "sdk", "cli"]
 
 ENTITIES = [
-    "skills", "plugins", "connectors", "mcps", "subagents",
-    "hooks", "sessions", "memories", "agent-teams",
+    "skills",
+    "plugins",
+    "connectors",
+    "mcps",
+    "subagents",
+    "hooks",
+    "sessions",
+    "memories",
+    "agent-teams",
 ]
 
 OPERATIONS = ["create", "read", "update", "delete"]
@@ -133,10 +140,7 @@ def generate_eval(interface: str, entity: str, operation: str) -> dict:
 
     expected = f"A successful {operation} of a {singular} via {interface}, returning the appropriate response."
 
-    assertions = [
-        a.format(entity=singular, interface=interface)
-        for a in ASSERTION_TEMPLATES[operation]
-    ]
+    assertions = [a.format(entity=singular, interface=interface) for a in ASSERTION_TEMPLATES[operation]]
 
     pattern = INTERFACE_PATTERNS[interface][operation]
     command_hint = pattern.format(

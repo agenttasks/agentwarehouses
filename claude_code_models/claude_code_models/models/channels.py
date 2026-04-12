@@ -69,9 +69,7 @@ class PermissionRequest(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True)
 
-    request_id: str = Field(
-        description="Five lowercase letters (a-z minus 'l'). Include verbatim in outbound prompt."
-    )
+    request_id: str = Field(description="Five lowercase letters (a-z minus 'l'). Include verbatim in outbound prompt.")
     tool_name: str = Field(description="Tool Claude wants to use (e.g. 'Bash', 'Write')")
     description: str = Field(description="Human-readable summary, same as local terminal dialog")
     input_preview: str = Field(description="Tool args as JSON, truncated to 200 chars")
@@ -96,11 +94,16 @@ class ChannelReplyTool(BaseModel):
 
     name: str = "reply"
     description: str = "Send a message back over this channel"
-    input_schema: dict = Field(default_factory=lambda: {
-        "type": "object",
-        "properties": {
-            "chat_id": {"type": "string", "description": "The conversation to reply in"},
-            "text": {"type": "string", "description": "The message to send"},
-        },
-        "required": ["chat_id", "text"],
-    })
+    input_schema: dict = Field(
+        default_factory=lambda: {
+            "type": "object",
+            "properties": {
+                "chat_id": {
+                    "type": "string",
+                    "description": "The conversation to reply in",
+                },
+                "text": {"type": "string", "description": "The message to send"},
+            },
+            "required": ["chat_id", "text"],
+        }
+    )

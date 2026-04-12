@@ -35,17 +35,22 @@ Exit codes:
   2  Network or server error
   3  GraphQL errors in response""",
     )
-    p.add_argument("--endpoint", default=os.environ.get("GRAPHQL_ENDPOINT"),
-                    help="GraphQL endpoint URL (default: $GRAPHQL_ENDPOINT)")
+    p.add_argument(
+        "--endpoint",
+        default=os.environ.get("GRAPHQL_ENDPOINT"),
+        help="GraphQL endpoint URL (default: $GRAPHQL_ENDPOINT)",
+    )
     p.add_argument("--query", help="GraphQL query string")
     p.add_argument("--query-file", help="Path to a .graphql file containing the query")
     p.add_argument("--variables", help="JSON string of query variables")
     p.add_argument("--variables-file", help="Path to a JSON file of variables")
     p.add_argument("--operation", help="Operation name (for documents with multiple operations)")
-    p.add_argument("--header", action="append", default=[],
-                    help="HTTP header as 'Key: Value' (repeatable)")
-    p.add_argument("--bearer-token", default=os.environ.get("GRAPHQL_BEARER_TOKEN"),
-                    help="Bearer token for Authorization header (default: $GRAPHQL_BEARER_TOKEN)")
+    p.add_argument("--header", action="append", default=[], help="HTTP header as 'Key: Value' (repeatable)")
+    p.add_argument(
+        "--bearer-token",
+        default=os.environ.get("GRAPHQL_BEARER_TOKEN"),
+        help="Bearer token for Authorization header (default: $GRAPHQL_BEARER_TOKEN)",
+    )
     p.add_argument("--timeout", type=int, default=30, help="Request timeout in seconds (default: 30)")
     p.add_argument("--output", help="Write response to file instead of stdout")
     return p

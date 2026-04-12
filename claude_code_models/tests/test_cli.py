@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError
 
 from claude_code_models.models.cli import (
     CLICommand,
@@ -10,14 +11,17 @@ from claude_code_models.models.cli import (
     CLIFlag,
     EffortLevel,
     EnvironmentVariable,
-    InputFormat,
     OutputFormat,
 )
 
 
 class TestOutputFormat:
     def test_values(self) -> None:
-        assert set(OutputFormat) == {OutputFormat.TEXT, OutputFormat.JSON, OutputFormat.STREAM_JSON}
+        assert set(OutputFormat) == {
+            OutputFormat.TEXT,
+            OutputFormat.JSON,
+            OutputFormat.STREAM_JSON,
+        }
 
     def test_stream_json(self) -> None:
         assert OutputFormat.STREAM_JSON == "stream-json"
@@ -36,12 +40,16 @@ class TestCLICommand:
         assert cmd.name == "claude"
 
     def test_with_aliases(self) -> None:
-        cmd = CLICommand(name="claude plugin", description="Manage plugins", aliases=["claude plugins"])
+        cmd = CLICommand(
+            name="claude plugin",
+            description="Manage plugins",
+            aliases=["claude plugins"],
+        )
         assert "claude plugins" in cmd.aliases
 
     def test_frozen(self) -> None:
         cmd = CLICommand(name="claude", description="Start")
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             cmd.name = "other"  # type: ignore[misc]
 
 
@@ -77,7 +85,10 @@ class TestEnvironmentVariable:
 
     def test_with_default(self) -> None:
         env = EnvironmentVariable(
-            name="API_TIMEOUT_MS", description="Timeout", default="600000", value_type="int",
+            name="API_TIMEOUT_MS",
+            description="Timeout",
+            default="600000",
+            value_type="int",
         )
         assert env.default == "600000"
 
@@ -114,10 +125,10 @@ class TestCLIConfig:
 
     @pytest.mark.validation
     def test_invalid_max_turns(self) -> None:
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             CLIConfig(max_turns=0)
 
     @pytest.mark.validation
     def test_invalid_budget(self) -> None:
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             CLIConfig(max_budget_usd=-1.0)

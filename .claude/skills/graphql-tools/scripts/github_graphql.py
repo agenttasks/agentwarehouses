@@ -101,8 +101,7 @@ Exit codes:
     )
     p.add_argument("--query", help="Raw GraphQL query string")
     p.add_argument("--query-file", help="Path to a .graphql file")
-    p.add_argument("--operation", choices=list(BUILTIN_OPERATIONS.keys()),
-                    help="Use a built-in operation")
+    p.add_argument("--operation", choices=list(BUILTIN_OPERATIONS.keys()), help="Use a built-in operation")
     p.add_argument("--variables", help="JSON string of query variables")
     p.add_argument("--owner", help="Repository owner (for built-in ops)")
     p.add_argument("--repo", help="Repository name (for built-in ops)")
@@ -112,8 +111,7 @@ Exit codes:
     p.add_argument("--max-pages", type=int, default=10, help="Max pages when paginating (default: 10)")
     p.add_argument("--cost-estimate", action="store_true", help="Show rate limit cost after query")
     p.add_argument("--output", help="Write response to file instead of stdout")
-    p.add_argument("--token", default=os.environ.get("GITHUB_TOKEN"),
-                    help="GitHub token (default: $GITHUB_TOKEN)")
+    p.add_argument("--token", default=os.environ.get("GITHUB_TOKEN"), help="GitHub token (default: $GITHUB_TOKEN)")
     return p
 
 
@@ -234,10 +232,13 @@ def main() -> None:
             variables[cursor_key or "after"] = page_info["endCursor"]
 
     if args.cost_estimate:
-        cost_query = '{ rateLimit { limit cost remaining resetAt } }'
+        cost_query = "{ rateLimit { limit cost remaining resetAt } }"
         cost_data = execute_query(client, args.token, cost_query, {})
         rate = cost_data.get("data", {}).get("rateLimit", {})
-        print(f"Rate limit: {rate.get('remaining', '?')}/{rate.get('limit', '?')} remaining, resets at {rate.get('resetAt', '?')}", file=sys.stderr)
+        print(
+            f"Rate limit: {rate.get('remaining', '?')}/{rate.get('limit', '?')} remaining, resets at {rate.get('resetAt', '?')}",
+            file=sys.stderr,
+        )
 
     output_data = all_results[0] if len(all_results) == 1 else {"pages": all_results}
     output = json.dumps(output_data, indent=2)

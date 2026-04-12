@@ -66,7 +66,10 @@ class TestSessionEvent:
         assert e.type == "user.message"
 
     def test_tool_use(self) -> None:
-        e = SessionEvent(type="tool_use", content=[{"type": "tool_use", "name": "Bash", "input": {"command": "ls"}}])
+        e = SessionEvent(
+            type="tool_use",
+            content=[{"type": "tool_use", "name": "Bash", "input": {"command": "ls"}}],
+        )
         assert isinstance(e.content, list)
 
     def test_extra_fields(self) -> None:
@@ -114,7 +117,8 @@ class TestCheckpoint:
     @pytest.mark.serialization
     def test_json_roundtrip(self) -> None:
         cp = Checkpoint(
-            checkpoint_id="cp-3", session_id="sess-2",
+            checkpoint_id="cp-3",
+            session_id="sess-2",
             files=[CheckpointEntry(file_path="/a.py")],
         )
         data = cp.model_dump(mode="json")

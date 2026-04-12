@@ -44,18 +44,25 @@ Exit codes:
     )
     p.add_argument("--old", required=True, help="Path to the old (base) schema file")
     p.add_argument("--new", required=True, help="Path to the new (target) schema file")
-    p.add_argument("--format", choices=["text", "json"], default="text",
-                    help="Output format (default: text)")
-    p.add_argument("--breaking-only", action="store_true",
-                    help="Only show breaking changes")
+    p.add_argument("--format", choices=["text", "json"], default="text", help="Output format (default: text)")
+    p.add_argument("--breaking-only", action="store_true", help="Only show breaking changes")
     p.add_argument("--output", help="Write output to file instead of stdout")
     return p
 
 
 BUILTIN_TYPES = {
-    "String", "Int", "Float", "Boolean", "ID",
-    "__Schema", "__Type", "__Field", "__InputValue",
-    "__EnumValue", "__Directive", "__DirectiveLocation",
+    "String",
+    "Int",
+    "Float",
+    "Boolean",
+    "ID",
+    "__Schema",
+    "__Type",
+    "__Field",
+    "__InputValue",
+    "__EnumValue",
+    "__Directive",
+    "__DirectiveLocation",
 }
 
 
@@ -95,14 +102,16 @@ def diff_schemas(old_schema, new_schema) -> list[dict]:
     # Removed types (breaking)
     for name in old_types:
         if name not in new_types:
-            changes.append({"type": "TYPE_REMOVED", "breaking": True,
-                           "path": name, "message": f"Type '{name}' was removed"})
+            changes.append(
+                {"type": "TYPE_REMOVED", "breaking": True, "path": name, "message": f"Type '{name}' was removed"}
+            )
 
     # Added types (non-breaking)
     for name in new_types:
         if name not in old_types:
-            changes.append({"type": "TYPE_ADDED", "breaking": False,
-                           "path": name, "message": f"Type '{name}' was added"})
+            changes.append(
+                {"type": "TYPE_ADDED", "breaking": False, "path": name, "message": f"Type '{name}' was added"}
+            )
 
     # Changed types
     for name in old_types:
@@ -112,10 +121,15 @@ def diff_schemas(old_schema, new_schema) -> list[dict]:
         new_t = new_types[name]
 
         # Type kind changed (breaking)
-        if type(old_t) != type(new_t):
-            changes.append({"type": "TYPE_KIND_CHANGED", "breaking": True,
-                           "path": name,
-                           "message": f"Type '{name}' changed kind from {old_t.__class__.__name__} to {new_t.__class__.__name__}"})
+        if type(old_t) is not type(new_t):
+            changes.append(
+                {
+                    "type": "TYPE_KIND_CHANGED",
+                    "breaking": True,
+                    "path": name,
+                    "message": f"Type '{name}' changed kind from {old_t.__class__.__name__} to {new_t.__class__.__name__}",
+                }
+            )
             continue
 
         # Object/Interface types - check fields
@@ -125,16 +139,26 @@ def diff_schemas(old_schema, new_schema) -> list[dict]:
 
             for fname in old_fields:
                 if fname not in new_fields:
-                    changes.append({"type": "FIELD_REMOVED", "breaking": True,
-                                   "path": f"{name}.{fname}",
-                                   "message": f"Field '{fname}' was removed from type '{name}'"})
+                    changes.append(
+                        {
+                            "type": "FIELD_REMOVED",
+                            "breaking": True,
+                            "path": f"{name}.{fname}",
+                            "message": f"Field '{fname}' was removed from type '{name}'",
+                        }
+                    )
                 else:
                     old_ftype = get_type_name(old_fields[fname].type)
                     new_ftype = get_type_name(new_fields[fname].type)
                     if old_ftype != new_ftype:
-                        changes.append({"type": "FIELD_TYPE_CHANGED", "breaking": True,
-                                       "path": f"{name}.{fname}",
-                                       "message": f"Field '{name}.{fname}' type changed from '{old_ftype}' to '{new_ftype}'"})
+                        changes.append(
+                            {
+                                "type": "FIELD_TYPE_CHANGED",
+                                "breaking": True,
+                                "path": f"{name}.{fname}",
+                                "message": f"Field '{name}.{fname}' type changed from '{old_ftype}' to '{new_ftype}'",
+                            }
+                        )
 
                     # Check arguments
                     old_args = old_fields[fname].args
@@ -142,53 +166,93 @@ def diff_schemas(old_schema, new_schema) -> list[dict]:
 
                     for aname in old_args:
                         if aname not in new_args:
-                            changes.append({"type": "ARG_REMOVED", "breaking": True,
-                                           "path": f"{name}.{fname}({aname})",
-                                           "message": f"Argument '{aname}' removed from '{name}.{fname}'"})
+                            changes.append(
+                                {
+                                    "type": "ARG_REMOVED",
+                                    "breaking": True,
+                                    "path": f"{name}.{fname}({aname})",
+                                    "message": f"Argument '{aname}' removed from '{name}.{fname}'",
+                                }
+                            )
 
                     for aname in new_args:
                         if aname not in old_args:
                             is_required = "!" in get_type_name(new_args[aname].type)
                             if is_required and new_args[aname].default_value is None:
-                                changes.append({"type": "REQUIRED_ARG_ADDED", "breaking": True,
-                                               "path": f"{name}.{fname}({aname})",
-                                               "message": f"Required argument '{aname}' added to '{name}.{fname}'"})
+                                changes.append(
+                                    {
+                                        "type": "REQUIRED_ARG_ADDED",
+                                        "breaking": True,
+                                        "path": f"{name}.{fname}({aname})",
+                                        "message": f"Required argument '{aname}' added to '{name}.{fname}'",
+                                    }
+                                )
                             else:
-                                changes.append({"type": "OPTIONAL_ARG_ADDED", "breaking": False,
-                                               "path": f"{name}.{fname}({aname})",
-                                               "message": f"Optional argument '{aname}' added to '{name}.{fname}'"})
+                                changes.append(
+                                    {
+                                        "type": "OPTIONAL_ARG_ADDED",
+                                        "breaking": False,
+                                        "path": f"{name}.{fname}({aname})",
+                                        "message": f"Optional argument '{aname}' added to '{name}.{fname}'",
+                                    }
+                                )
 
             for fname in new_fields:
                 if fname not in old_fields:
-                    changes.append({"type": "FIELD_ADDED", "breaking": False,
-                                   "path": f"{name}.{fname}",
-                                   "message": f"Field '{fname}' was added to type '{name}'"})
+                    changes.append(
+                        {
+                            "type": "FIELD_ADDED",
+                            "breaking": False,
+                            "path": f"{name}.{fname}",
+                            "message": f"Field '{fname}' was added to type '{name}'",
+                        }
+                    )
 
         # Enum types - check values
         if isinstance(old_t, GraphQLEnumType):
             old_values = set(old_t.values.keys())
             new_values = set(new_t.values.keys())
             for v in old_values - new_values:
-                changes.append({"type": "ENUM_VALUE_REMOVED", "breaking": True,
-                               "path": f"{name}.{v}",
-                               "message": f"Enum value '{v}' removed from '{name}'"})
+                changes.append(
+                    {
+                        "type": "ENUM_VALUE_REMOVED",
+                        "breaking": True,
+                        "path": f"{name}.{v}",
+                        "message": f"Enum value '{v}' removed from '{name}'",
+                    }
+                )
             for v in new_values - old_values:
-                changes.append({"type": "ENUM_VALUE_ADDED", "breaking": False,
-                               "path": f"{name}.{v}",
-                               "message": f"Enum value '{v}' added to '{name}'"})
+                changes.append(
+                    {
+                        "type": "ENUM_VALUE_ADDED",
+                        "breaking": False,
+                        "path": f"{name}.{v}",
+                        "message": f"Enum value '{v}' added to '{name}'",
+                    }
+                )
 
         # Union types - check members
         if isinstance(old_t, GraphQLUnionType):
             old_members = {m.name for m in old_t.types}
             new_members = {m.name for m in new_t.types}
             for m in old_members - new_members:
-                changes.append({"type": "UNION_MEMBER_REMOVED", "breaking": True,
-                               "path": f"{name}.{m}",
-                               "message": f"Union member '{m}' removed from '{name}'"})
+                changes.append(
+                    {
+                        "type": "UNION_MEMBER_REMOVED",
+                        "breaking": True,
+                        "path": f"{name}.{m}",
+                        "message": f"Union member '{m}' removed from '{name}'",
+                    }
+                )
             for m in new_members - old_members:
-                changes.append({"type": "UNION_MEMBER_ADDED", "breaking": False,
-                               "path": f"{name}.{m}",
-                               "message": f"Union member '{m}' added to '{name}'"})
+                changes.append(
+                    {
+                        "type": "UNION_MEMBER_ADDED",
+                        "breaking": False,
+                        "path": f"{name}.{m}",
+                        "message": f"Union member '{m}' added to '{name}'",
+                    }
+                )
 
         # Input types - check fields
         if isinstance(old_t, GraphQLInputObjectType):
@@ -196,20 +260,35 @@ def diff_schemas(old_schema, new_schema) -> list[dict]:
             new_fields = new_t.fields
             for fname in old_fields:
                 if fname not in new_fields:
-                    changes.append({"type": "INPUT_FIELD_REMOVED", "breaking": True,
-                                   "path": f"{name}.{fname}",
-                                   "message": f"Input field '{fname}' removed from '{name}'"})
+                    changes.append(
+                        {
+                            "type": "INPUT_FIELD_REMOVED",
+                            "breaking": True,
+                            "path": f"{name}.{fname}",
+                            "message": f"Input field '{fname}' removed from '{name}'",
+                        }
+                    )
             for fname in new_fields:
                 if fname not in old_fields:
                     is_required = "!" in get_type_name(new_fields[fname].type)
                     if is_required and new_fields[fname].default_value is None:
-                        changes.append({"type": "REQUIRED_INPUT_FIELD_ADDED", "breaking": True,
-                                       "path": f"{name}.{fname}",
-                                       "message": f"Required input field '{fname}' added to '{name}'"})
+                        changes.append(
+                            {
+                                "type": "REQUIRED_INPUT_FIELD_ADDED",
+                                "breaking": True,
+                                "path": f"{name}.{fname}",
+                                "message": f"Required input field '{fname}' added to '{name}'",
+                            }
+                        )
                     else:
-                        changes.append({"type": "OPTIONAL_INPUT_FIELD_ADDED", "breaking": False,
-                                       "path": f"{name}.{fname}",
-                                       "message": f"Optional input field '{fname}' added to '{name}'"})
+                        changes.append(
+                            {
+                                "type": "OPTIONAL_INPUT_FIELD_ADDED",
+                                "breaking": False,
+                                "path": f"{name}.{fname}",
+                                "message": f"Optional input field '{fname}' added to '{name}'",
+                            }
+                        )
 
     return changes
 
@@ -251,14 +330,17 @@ def main() -> None:
 
     if args.format == "json":
         filtered = [c for c in changes if c["breaking"]] if args.breaking_only else changes
-        output = json.dumps({
-            "changes": filtered,
-            "summary": {
-                "breaking": sum(1 for c in changes if c["breaking"]),
-                "non_breaking": sum(1 for c in changes if not c["breaking"]),
-                "total": len(changes),
-            }
-        }, indent=2)
+        output = json.dumps(
+            {
+                "changes": filtered,
+                "summary": {
+                    "breaking": sum(1 for c in changes if c["breaking"]),
+                    "non_breaking": sum(1 for c in changes if not c["breaking"]),
+                    "total": len(changes),
+                },
+            },
+            indent=2,
+        )
     else:
         output = format_text(changes, args.breaking_only)
 

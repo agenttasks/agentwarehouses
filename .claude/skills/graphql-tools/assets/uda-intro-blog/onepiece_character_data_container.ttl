@@ -55,4 +55,3 @@ source_78867:ONEPIECE_rname
     avro:name       "ONEPIECE_rname" ;
     avro:primaryKey true ;
     avro:type       avro:string .
-

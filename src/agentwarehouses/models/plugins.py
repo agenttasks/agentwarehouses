@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import Field
 
 from agentwarehouses.models.base import BaseModel
@@ -37,10 +39,10 @@ class PluginManifest(BaseModel):
     skills: str | list[str] | None = None
     commands: str | list[str] | None = None
     agents: str | list[str] | None = None
-    hooks: str | list[str] | dict | None = None
-    mcp_servers: str | list[str] | dict | None = Field(None, alias="mcpServers")
+    hooks: str | list[str] | dict[str, Any] | None = None
+    mcp_servers: str | list[str] | dict[str, Any] | None = Field(None, alias="mcpServers")
     output_styles: str | list[str] | None = Field(None, alias="outputStyles")
-    lsp_servers: str | list[str] | dict | None = Field(None, alias="lspServers")
+    lsp_servers: str | list[str] | dict[str, Any] | None = Field(None, alias="lspServers")
     user_config: dict[str, UserConfigField] | None = Field(None, alias="userConfig")
     channels: list[ChannelDeclaration] | None = None
 
@@ -53,8 +55,8 @@ class LSPServer(BaseModel):
     extension_to_language: dict[str, str] = Field(alias="extensionToLanguage")
     transport: str | None = None
     env: dict[str, str] | None = None
-    initialization_options: dict | None = Field(None, alias="initializationOptions")
-    settings: dict | None = None
+    initialization_options: dict[str, Any] | None = Field(None, alias="initializationOptions")
+    settings: dict[str, Any] | None = None
     startup_timeout: int | None = Field(None, alias="startupTimeout")
     shutdown_timeout: int | None = Field(None, alias="shutdownTimeout")
     restart_on_crash: bool | None = Field(None, alias="restartOnCrash")

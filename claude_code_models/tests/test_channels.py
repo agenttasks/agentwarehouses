@@ -57,7 +57,12 @@ class TestPermissionRequest:
 
     @pytest.mark.serialization
     def test_json_roundtrip(self) -> None:
-        pr = PermissionRequest(request_id="fghij", tool_name="Write", description="Write file", input_preview="{}")
+        pr = PermissionRequest(
+            request_id="fghij",
+            tool_name="Write",
+            description="Write file",
+            input_preview="{}",
+        )
         data = pr.model_dump(mode="json")
         restored = PermissionRequest.model_validate(data)
         assert restored.request_id == "fghij"

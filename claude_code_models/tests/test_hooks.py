@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-from pydantic import ValidationError
 
 from claude_code_models.models.hooks import (
     AgentHook,
@@ -30,7 +29,11 @@ class TestHookEventName:
         assert HookEventName.SESSION_END == "SessionEnd"
 
     def test_tool_events(self) -> None:
-        tool_events = {HookEventName.PRE_TOOL_USE, HookEventName.POST_TOOL_USE, HookEventName.POST_TOOL_USE_FAILURE}
+        tool_events = {
+            HookEventName.PRE_TOOL_USE,
+            HookEventName.POST_TOOL_USE,
+            HookEventName.POST_TOOL_USE_FAILURE,
+        }
         assert all(e.value.endswith(("Use", "Failure")) for e in tool_events)
 
     def test_new_events(self) -> None:
@@ -130,10 +133,12 @@ class TestHookConfig:
     def test_multi_event(self) -> None:
         pre = HookMatcherGroup(matcher="Bash", hooks=[CommandHook(command="./pre.sh")])
         post = HookMatcherGroup(matcher="Edit|Write", hooks=[CommandHook(command="./post.sh")])
-        cfg = HookConfig(hooks={
-            HookEventName.PRE_TOOL_USE: [pre],
-            HookEventName.POST_TOOL_USE: [post],
-        })
+        cfg = HookConfig(
+            hooks={
+                HookEventName.PRE_TOOL_USE: [pre],
+                HookEventName.POST_TOOL_USE: [post],
+            }
+        )
         assert len(cfg.hooks) == 2
 
     def test_disabled(self) -> None:
@@ -142,11 +147,13 @@ class TestHookConfig:
 
     @pytest.mark.serialization
     def test_json_roundtrip(self) -> None:
-        cfg = HookConfig(hooks={
-            HookEventName.SESSION_START: [
-                HookMatcherGroup(matcher="startup", hooks=[CommandHook(command="./init.sh")])
-            ]
-        })
+        cfg = HookConfig(
+            hooks={
+                HookEventName.SESSION_START: [
+                    HookMatcherGroup(matcher="startup", hooks=[CommandHook(command="./init.sh")])
+                ]
+            }
+        )
         data = cfg.model_dump(mode="json", by_alias=True)
         restored = HookConfig.model_validate(data)
         assert HookEventName.SESSION_START in restored.hooks
@@ -154,21 +161,33 @@ class TestHookConfig:
 
 class TestHookInput:
     def test_basic(self) -> None:
-        inp = HookInput(session_id="abc", cwd="/home", permission_mode="default", hook_event_name="PreToolUse")
+        inp = HookInput(
+            session_id="abc",
+            cwd="/home",
+            permission_mode="default",
+            hook_event_name="PreToolUse",
+        )
         assert inp.session_id == "abc"
 
     def test_tool_context(self) -> None:
         inp = HookInput(
-            session_id="abc", cwd="/home", permission_mode="default",
-            hook_event_name="PreToolUse", tool_name="Bash",
-            tool_input={"command": "ls"}, tool_use_id="tu_1",
+            session_id="abc",
+            cwd="/home",
+            permission_mode="default",
+            hook_event_name="PreToolUse",
+            tool_name="Bash",
+            tool_input={"command": "ls"},
+            tool_use_id="tu_1",
         )
         assert inp.tool_name == "Bash"
 
     def test_extra_fields(self) -> None:
         inp = HookInput(
-            session_id="abc", cwd="/home", permission_mode="default",
-            hook_event_name="Stop", custom_field="value",
+            session_id="abc",
+            cwd="/home",
+            permission_mode="default",
+            hook_event_name="Stop",
+            custom_field="value",
         )
         assert inp.model_extra is not None
 
@@ -200,7 +219,11 @@ class TestPermissionRequestDecision:
         d = PermissionRequestDecision(
             behavior="allow",
             updatedPermissions=[
-                PermissionUpdateEntry(type="addRules", rules=[{"toolName": "Bash", "ruleContent": "git *"}], behavior="allow")
+                PermissionUpdateEntry(
+                    type="addRules",
+                    rules=[{"toolName": "Bash", "ruleContent": "git *"}],
+                    behavior="allow",
+                )
             ],
         )
         assert len(d.updated_permissions) == 1

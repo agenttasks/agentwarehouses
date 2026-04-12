@@ -108,7 +108,9 @@ def check_assertion(assertion: str, output: dict, eval_case: dict) -> dict:
             result["passed"] = True
             result["evidence"] = f"Response has {len(output)} fields: {list(output.keys())[:8]}"
         else:
-            result["evidence"] = f"Insufficient fields. Keys: {list(output.keys()) if isinstance(output, dict) else 'not a dict'}"
+            result["evidence"] = (
+                f"Insufficient fields. Keys: {list(output.keys()) if isinstance(output, dict) else 'not a dict'}"
+            )
 
     elif "incremented" in assertion_lower:
         if is_dry_run:
@@ -122,7 +124,9 @@ def check_assertion(assertion: str, output: dict, eval_case: dict) -> dict:
 
     elif "retain" in assertion_lower or "original values" in assertion_lower:
         result["passed"] = not has_error
-        result["evidence"] = "Non-error response implies field preservation" if not has_error else "Cannot verify: error occurred"
+        result["evidence"] = (
+            "Non-error response implies field preservation" if not has_error else "Cannot verify: error occurred"
+        )
 
     elif "deleted" in assertion_lower or "404" in assertion_lower or "empty" in assertion_lower:
         if is_dry_run:
