@@ -98,7 +98,18 @@ from agentwarehouses.models.sdk import (
     ToolUseBlock,
     UserMessage,
 )
-from agentwarehouses.models.sessions import SessionCLIFlags, SessionInfo, SessionMessage
+from agentwarehouses.models.sessions import (
+    DeviceInfo,
+    FeatureFlags,
+    PlatformInfo,
+    RuntimeInfo,
+    SessionCLIFlags,
+    SessionContext,
+    SessionEnvironment,
+    SessionInfo,
+    SessionMessage,
+    SurfaceInfo,
+)
 from agentwarehouses.models.skills import SkillEvalCase, SkillEvalSuite, SkillFile, SkillFrontmatter
 from agentwarehouses.models.subagents import (
     AgentCLIFlags,
@@ -217,6 +228,13 @@ __all__ = [
     "SessionInfo",
     "SessionMessage",
     "SessionCLIFlags",
+    "SessionContext",
+    "SurfaceInfo",
+    "PlatformInfo",
+    "DeviceInfo",
+    "RuntimeInfo",
+    "FeatureFlags",
+    "SessionEnvironment",
     # Memories
     "MemoryConfig",
     "MemoryFile",
