@@ -81,6 +81,12 @@ from agentwarehouses.models.plugins import (
     PluginManifest,
     UserConfigField,
 )
+from agentwarehouses.models.prompt_caching import (
+    CacheableTextBlock,
+    CacheControl,
+    CacheUsage,
+    SpeculativeCacheConfig,
+)
 from agentwarehouses.models.sdk import (
     AssistantMessage,
     ClaudeAgentOptions,
@@ -250,6 +256,11 @@ __all__ = [
     "CommandArgument",
     "CommandType",
     "CommandAvailability",
+    # Prompt Caching
+    "CacheControl",
+    "CacheableTextBlock",
+    "CacheUsage",
+    "SpeculativeCacheConfig",
     # SDK
     "ClaudeAgentOptions",
     "SystemPromptPreset",
