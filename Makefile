@@ -91,6 +91,14 @@ crawl-audit: ## Audit crawl output for quality
 	print('PASS' if not empty and not short and len(urls) == len(set(urls)) else 'FAIL')"
 
 # ──────────────────────────────────────────────
+# Database & Schema
+# ──────────────────────────────────────────────
+
+.PHONY: migrate-kimball
+migrate-kimball: ## Create Kimball star schema in Neon (requires DATABASE_URL)
+	cd schema && psql "$$DATABASE_URL" -f migrate.sql
+
+# ──────────────────────────────────────────────
 # Generate
 # ──────────────────────────────────────────────
 
