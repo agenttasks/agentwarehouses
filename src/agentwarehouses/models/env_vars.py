@@ -103,3 +103,59 @@ CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = EnvVarDefinition(
     description="Enable experimental agent teams feature",
     category=EnvVarCategory.FEATURES,
 )
+
+# Cloud / headless environment variables (2.1.105+)
+
+CLAUDE_CODE_OAUTH_TOKEN = EnvVarDefinition(
+    name="CLAUDE_CODE_OAUTH_TOKEN",
+    type=EnvVarType.STRING,
+    description="OAuth access token for Claude.ai (preferred over API key in cloud/CI)",
+    category=EnvVarCategory.AUTHENTICATION,
+)
+
+CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = EnvVarDefinition(
+    name="CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
+    type=EnvVarType.BOOLEAN,
+    default="0",
+    description="Disable telemetry, surveys, auto-updates, and error reporting (scoping fixed in 2.1.105)",
+    category=EnvVarCategory.TELEMETRY,
+)
+
+DISABLE_AUTOUPDATER = EnvVarDefinition(
+    name="DISABLE_AUTOUPDATER",
+    type=EnvVarType.BOOLEAN,
+    default="0",
+    description="Disable automatic updates (set to 1 in containerized environments)",
+    category=EnvVarCategory.FEATURES,
+)
+
+CLAUDE_CODE_EXIT_AFTER_STOP_DELAY = EnvVarDefinition(
+    name="CLAUDE_CODE_EXIT_AFTER_STOP_DELAY",
+    type=EnvVarType.INTEGER,
+    description="Time in ms after idle before auto-exit (for serverless/container cleanup)",
+    category=EnvVarCategory.FEATURES,
+)
+
+CLAUDE_CODE_SYNC_PLUGIN_INSTALL = EnvVarDefinition(
+    name="CLAUDE_CODE_SYNC_PLUGIN_INSTALL",
+    type=EnvVarType.BOOLEAN,
+    default="0",
+    description="Wait for plugin installation in headless (-p) mode instead of async",
+    category=EnvVarCategory.PLUGINS,
+)
+
+CLAUDE_CODE_SYNC_PLUGIN_INSTALL_TIMEOUT_MS = EnvVarDefinition(
+    name="CLAUDE_CODE_SYNC_PLUGIN_INSTALL_TIMEOUT_MS",
+    type=EnvVarType.INTEGER,
+    default="60000",
+    description="Timeout in ms for synchronous plugin installation in headless mode",
+    category=EnvVarCategory.PLUGINS,
+)
+
+API_TIMEOUT_MS = EnvVarDefinition(
+    name="API_TIMEOUT_MS",
+    type=EnvVarType.INTEGER,
+    default="600000",
+    description="API request timeout in milliseconds (default 10 min)",
+    category=EnvVarCategory.NETWORK,
+)

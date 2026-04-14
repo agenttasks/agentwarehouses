@@ -32,6 +32,7 @@ from agentwarehouses.models import (
     ResultMessage,
     SemVer,
     SessionInfo,
+    SettingSource,
     SkillEvalCase,
     SkillEvalSuite,
     SkillFrontmatter,
@@ -347,6 +348,16 @@ class TestCommandModels:
         assert cd.name == "/clear"
 
 
+class TestSettingSource:
+    def test_managed_source(self):
+        assert SettingSource.MANAGED.value == "managed"
+
+    def test_all_sources(self):
+        assert len(SettingSource) == 4
+        sources = {s.value for s in SettingSource}
+        assert sources == {"user", "project", "local", "managed"}
+
+
 class TestEnvVarModels:
     def test_env_var_definition(self):
         ev = EnvVarDefinition(
@@ -356,3 +367,21 @@ class TestEnvVarModels:
             category=EnvVarCategory.AUTHENTICATION,
         )
         assert ev.name == "ANTHROPIC_API_KEY"
+
+    def test_cloud_env_vars_exist(self):
+        from agentwarehouses.models.env_vars import (
+            API_TIMEOUT_MS,
+            CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC,
+            CLAUDE_CODE_EXIT_AFTER_STOP_DELAY,
+            CLAUDE_CODE_OAUTH_TOKEN,
+            CLAUDE_CODE_SYNC_PLUGIN_INSTALL,
+            DISABLE_AUTOUPDATER,
+        )
+
+        assert CLAUDE_CODE_OAUTH_TOKEN.category == EnvVarCategory.AUTHENTICATION
+        assert CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC.category == EnvVarCategory.TELEMETRY
+        assert DISABLE_AUTOUPDATER.category == EnvVarCategory.FEATURES
+        assert CLAUDE_CODE_EXIT_AFTER_STOP_DELAY.category == EnvVarCategory.FEATURES
+        assert CLAUDE_CODE_SYNC_PLUGIN_INSTALL.category == EnvVarCategory.PLUGINS
+        assert API_TIMEOUT_MS.category == EnvVarCategory.NETWORK
+        assert API_TIMEOUT_MS.default == "600000"

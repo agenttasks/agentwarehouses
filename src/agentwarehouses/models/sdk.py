@@ -20,6 +20,7 @@ class SettingSource(str, Enum):
     USER = "user"
     PROJECT = "project"
     LOCAL = "local"
+    MANAGED = "managed"
 
 
 class ThinkingConfigAdaptive(BaseModel):
