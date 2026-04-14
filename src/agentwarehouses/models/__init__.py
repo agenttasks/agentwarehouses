@@ -126,6 +126,25 @@ from agentwarehouses.models.tools import (
     WebSearchInput,
     WriteInput,
 )
+from agentwarehouses.models.video import (
+    CinematicPromptRequest,
+    CinematicPromptResponse,
+    DistributionResult,
+    DistributionTask,
+    GenerationConfig,
+    GenerationModel,
+    GenerationTask,
+    InstagramReelsConfig,
+    Platform,
+    PlatformCredentials,
+    PromptStyle,
+    TikTokUploadConfig,
+    VideoAsset,
+    VideoMetadata,
+    VideoResolution,
+    VideoStatus,
+    YouTubeUploadConfig,
+)
 
 __all__ = [
     # Version
@@ -272,4 +291,22 @@ __all__ = [
     "OtelProtocol",
     "MetricDefinition",
     "EventDefinition",
+    # Video Pipeline
+    "VideoStatus",
+    "Platform",
+    "VideoResolution",
+    "GenerationModel",
+    "PromptStyle",
+    "VideoMetadata",
+    "VideoAsset",
+    "GenerationConfig",
+    "GenerationTask",
+    "CinematicPromptRequest",
+    "CinematicPromptResponse",
+    "PlatformCredentials",
+    "DistributionResult",
+    "DistributionTask",
+    "TikTokUploadConfig",
+    "YouTubeUploadConfig",
+    "InstagramReelsConfig",
 ]

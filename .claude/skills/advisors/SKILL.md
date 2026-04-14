@@ -1,12 +1,16 @@
 ---
 name: advisors
 description: >
-  Guides when and how to invoke the 10 persona subagents for different problem
+  Guides when and how to invoke the 12 advisor subagents for different problem
   types. Use when facing a complex or stuck situation. Each persona represents
   a specific cognitive style grounded in Anthropic's emotion-concept research.
 ---
 
 # Advisor Selection Guide
+
+> **Model tier:** All advisors run on `model: sonnet` (read-only, no codegen).
+> Only the main conversation (Opus 4.6) writes code. Advisors return analysis
+> and recommendations — never patches or file edits.
 
 ## The Core Three (Emotion-Calibrated)
 

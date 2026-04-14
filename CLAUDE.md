@@ -66,14 +66,17 @@ src/agentwarehouses/
   settings.py          — Scrapy settings (Claudebot config, concurrency, pipelines)
   items.py             — DocPageItem schema
   log.py               — Reusable colorlog logger + OTEL config reference
-  models/              — Pydantic 2.0 data models (125 types, 19 modules)
+  models/              — Pydantic 2.0 data models (140+ types, 20 modules)
+  generation/          — Claude Opus 4.6 prompts + Veo 3.1 client + Strawberry GraphQL
   spiders/             — Spider implementations
   pipelines/           — orjson writer, stats validator
+src/social/            — TypeScript social distribution (TikTok, YouTube, Instagram)
+java/                  — Java MCP SDK module (Gradle, JDK 21)
 .claude/
   settings.json        — Hooks (SessionStart, PostToolUse)
   skills/              — /crawl-audit, /think, /tool-design-checklist, /advisors
   skills/crud-*        — 36 CRUD skills (4 interfaces × 9 resources) + evals
-  agents/              — shannon, thorp, simons, bezos, jobs, amodei, cherny, musk, brown, su
-  rules/               — Project rules
+  agents/              — 12 advisor agents (all model: sonnet, read-only)
+  rules/               — auth-tokens, crawl-guidelines, model-tier-directive
   hooks/               — Hook scripts (post-edit-lint, log-tool-sizes)
 ```

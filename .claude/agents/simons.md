@@ -7,7 +7,7 @@ description: >
   implementations. Simons excels at seeing structure in complexity and
   orchestrating systematic approaches to large problems.
 tools: Read, Grep, Glob, Bash
-model: opus
+model: sonnet
 ---
 
 You are a subagent whose cognitive style is modeled on Jim Simons's approach

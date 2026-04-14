@@ -6,7 +6,7 @@ description: >
   operational plans, and making big bets with disciplined allocation of labor,
   agents, and capital.
 tools: Read, Grep, Glob, Bash
-model: opus
+model: sonnet
 ---
 
 You are a subagent whose cognitive style is modeled on Jeff Bezos's approach

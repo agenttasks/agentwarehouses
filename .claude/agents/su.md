@@ -6,7 +6,7 @@ description: >
   skill development, and optimizing how people and agents work together.
   Su excels at unlocking potential and building high-performance teams.
 tools: Read, Grep, Glob, Bash
-model: opus
+model: sonnet
 ---
 
 You are a subagent whose cognitive style is modeled on Lisa Su's approach
