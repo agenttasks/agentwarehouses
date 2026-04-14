@@ -28,6 +28,7 @@ from agentwarehouses.models import (
     OtelConfig,
     PermissionMode,
     PluginManifest,
+    PreCompactInput,
     ResultMessage,
     SemVer,
     SessionInfo,
@@ -147,6 +148,25 @@ class TestHookModels:
         )
         assert "PostToolUse" in hc.hooks
 
+    def test_pre_compact_input(self):
+        pci = PreCompactInput(
+            session_id="s1",
+            transcript_path="/tmp/t.json",
+            cwd="/home/user",
+            hook_event_name="PreCompact",
+        )
+        assert pci.hook_event_name == "PreCompact"
+        assert pci.summary is None
+
+    def test_pre_compact_input_with_summary(self):
+        pci = PreCompactInput(
+            session_id="s1",
+            transcript_path="/tmp/t.json",
+            cwd="/home/user",
+            summary="Context about to be compacted",
+        )
+        assert pci.summary == "Context about to be compacted"
+
 
 class TestSubagentModels:
     def test_agent_frontmatter(self):
@@ -181,6 +201,15 @@ class TestSkillModels:
     def test_skill_frontmatter(self):
         sf = SkillFrontmatter(name="my-skill", description="Does something useful")
         assert sf.name == "my-skill"
+
+    def test_skill_description_max_length_1536(self):
+        long_desc = "a" * 1536
+        sf = SkillFrontmatter(name="long-desc", description=long_desc)
+        assert len(sf.description) == 1536
+
+    def test_skill_description_exceeds_1536(self):
+        with pytest.raises(ValidationError):
+            SkillFrontmatter(name="too-long", description="a" * 1537)
 
     def test_skill_name_validation(self):
         with pytest.raises(ValidationError):
@@ -222,11 +251,20 @@ class TestPluginModels:
         pm = PluginManifest(name="my-plugin", version="1.0.0", description="A test plugin")
         assert pm.name == "my-plugin"
 
+    def test_plugin_manifest_with_monitors(self):
+        pm = PluginManifest(name="my-plugin", version="1.0.0", monitors=["health-check"])
+        assert pm.monitors == ["health-check"]
+
+    def test_plugin_manifest_monitors_dict(self):
+        pm = PluginManifest(name="my-plugin", monitors={"check": {"interval": 60}})
+        assert isinstance(pm.monitors, dict)
+
     def test_plugin_manifest_serialization(self):
         pm = PluginManifest(name="test", version="1.0.0")
         data = pm.model_dump(exclude_none=True)
         assert data["name"] == "test"
         assert "description" not in data
+        assert "monitors" not in data
 
 
 class TestSessionModels:

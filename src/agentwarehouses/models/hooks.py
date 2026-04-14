@@ -160,6 +160,13 @@ class SubagentStopInput(BaseHookInput):
     last_assistant_message: str | None = None
 
 
+class PreCompactInput(BaseHookInput):
+    """Input for PreCompact hooks. Exit code 2 or {"decision":"block"} blocks compaction."""
+
+    hook_event_name: Literal["PreCompact"] = "PreCompact"
+    summary: str | None = None
+
+
 class NotificationInput(BaseHookInput):
     hook_event_name: Literal["Notification"] = "Notification"
     message: str

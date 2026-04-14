@@ -11,7 +11,7 @@ class SkillFrontmatter(BaseModel):
     """YAML frontmatter for SKILL.md files (AgentSkills.io spec)."""
 
     name: str = Field(max_length=64, pattern=r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$")
-    description: str = Field(max_length=1024, min_length=1)
+    description: str = Field(max_length=1536, min_length=1)
     disable_model_invocation: bool | None = Field(None, alias="disable-model-invocation")
     license: str | None = None
     compatibility: str | None = Field(None, max_length=500)

@@ -43,6 +43,7 @@ from agentwarehouses.models.hooks import (
     HookSpecificOutput,
     HttpHookHandler,
     PostToolUseInput,
+    PreCompactInput,
     PreToolUseInput,
     PromptHookHandler,
     SessionStartInput,
@@ -195,6 +196,7 @@ __all__ = [
     "HookSpecificOutput",
     "PreToolUseInput",
     "PostToolUseInput",
+    "PreCompactInput",
     "SessionStartInput",
     "UserPromptSubmitInput",
     # Subagents
