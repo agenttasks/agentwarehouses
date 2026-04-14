@@ -126,6 +126,14 @@ crawl-neon: ## Crawl Neon docs (llms.txt + sitemap, rbloom dedup)
 crawl-neon-all: ## Crawl all Neon sources (llms + sitemap + blog + pg tutorials)
 	scrapy crawl neon_docs -a sources=llms,sitemap,blog_sitemap,pg_sitemap
 
+.PHONY: crawl-builder
+crawl-builder: ## Crawl Claude Builder docs (llms.txt + sitemap, research preview)
+	scrapy crawl claude_builder
+
+.PHONY: crawl-builder-llms
+crawl-builder-llms: ## Crawl Claude Builder docs (llms.txt only)
+	scrapy crawl claude_builder -a sources=llms
+
 .PHONY: neon-inventory
 neon-inventory: ## Print neondatabase repo inventory (194 repos, refactor candidates)
 	$(PYTHON) scripts/neon_repo_inventory.py
