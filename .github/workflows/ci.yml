@@ -46,3 +46,14 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           fail_ci_if_error: false
+
+  typecheck-ts:
+    name: TypeScript Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install --prefer-offline --no-audit
+      - run: make typecheck-ts

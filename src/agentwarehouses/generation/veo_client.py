@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 import time
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from google import genai
@@ -21,19 +21,10 @@ from agentwarehouses.models.video import (
     GenerationTask,
     VideoAsset,
     VideoMetadata,
-    VideoResolution,
     VideoStatus,
 )
 
 logger = get_logger(__name__)
-
-# Resolution to pixel dimensions for Veo 3.1
-_RESOLUTION_MAP: dict[VideoResolution, tuple[int, int]] = {
-    VideoResolution.SD_480P: (480, 854),
-    VideoResolution.HD_720P: (720, 1280),
-    VideoResolution.HD_1080P: (1080, 1920),
-    VideoResolution.UHD_4K: (2160, 3840),
-}
 
 
 class VeoClient:
@@ -56,18 +47,31 @@ class VeoClient:
         """
         config = config or GenerationConfig()
         task_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
 
         logger.info("Submitting Veo 3.1 generation task %s (model=%s)", task_id, config.model.value)
 
-        operation = self._client.models.generate_videos(
-            model=config.model.value,
-            prompt=prompt,
-            config=types.GenerateVideosConfig(
-                person_generation=config.person_generation,
-                aspect_ratio=config.aspect_ratio,
-                number_of_videos=1,
-            ),
-        )
+        try:
+            operation = self._client.models.generate_videos(
+                model=config.model.value,
+                prompt=prompt,
+                config=types.GenerateVideosConfig(
+                    person_generation=config.person_generation,
+                    aspect_ratio=config.aspect_ratio,
+                    number_of_videos=1,
+                ),
+            )
+        except Exception:
+            logger.exception("Veo 3.1 submission failed for task %s", task_id)
+            task = GenerationTask(
+                id=task_id,
+                prompt=prompt,
+                config=config,
+                status=VideoStatus.FAILED,
+                error="Veo 3.1 API submission failed",
+                created_at=now,
+            )
+            return None, task
 
         task = GenerationTask(
             id=task_id,
@@ -86,7 +90,7 @@ class VeoClient:
                 ),
                 generation_task_id=task_id,
             ),
-            created_at=datetime.utcnow(),
+            created_at=now,
         )
 
         return operation, task
@@ -103,6 +107,9 @@ class VeoClient:
 
         Saves the resulting video to output_dir and updates the task status.
         """
+        if operation is None:
+            return task
+
         elapsed = 0.0
 
         while not operation.done:
@@ -115,9 +122,15 @@ class VeoClient:
             time.sleep(poll_interval)
             elapsed += poll_interval
             logger.info("Polling task %s (%.0fs elapsed)", task.id, elapsed)
-            operation = self._client.operations.get(operation)
 
-        # Extract generated video
+            try:
+                operation = self._client.operations.get(operation)
+            except Exception:
+                logger.exception("Poll failed for task %s at %.0fs", task.id, elapsed)
+                task.status = VideoStatus.FAILED
+                task.error = f"Polling failed after {elapsed}s"
+                return task
+
         result = operation.result
         if not result or not result.generated_videos:
             task.status = VideoStatus.FAILED
@@ -126,14 +139,18 @@ class VeoClient:
 
         video = result.generated_videos[0]
 
-        # Save to disk
         out_path = Path(output_dir)
         out_path.mkdir(parents=True, exist_ok=True)
-        file_name = f"{task.id}.mp4"
-        file_path = out_path / file_name
+        file_path = out_path / f"{task.id}.mp4"
 
-        video_data = self._client.files.download(file=video.video)
-        file_path.write_bytes(video_data)
+        try:
+            video_data = self._client.files.download(file=video.video)
+            file_path.write_bytes(video_data)
+        except Exception:
+            logger.exception("Video download/save failed for task %s", task.id)
+            task.status = VideoStatus.FAILED
+            task.error = "Video download failed"
+            return task
 
         logger.info("Video saved to %s", file_path)
 
@@ -141,7 +158,7 @@ class VeoClient:
         if task.video_asset:
             task.video_asset.status = VideoStatus.READY
             task.video_asset.url = str(file_path)
-            task.video_asset.updated_at = datetime.utcnow()
+            task.video_asset.updated_at = datetime.now(timezone.utc)
 
         return task
 
@@ -153,42 +170,6 @@ class VeoClient:
         tags: list[str] | None = None,
         output_dir: str = "output/videos",
     ) -> GenerationTask:
-        """Submit generation and block until the video is ready.
-
-        Combines submit_generation + poll_generation for simple use cases.
-        """
-        config = config or GenerationConfig()
-        task_id = str(uuid.uuid4())
-
-        logger.info("Starting Veo 3.1 generation (blocking) task %s", task_id)
-
-        operation = self._client.models.generate_videos(
-            model=config.model.value,
-            prompt=prompt,
-            config=types.GenerateVideosConfig(
-                person_generation=config.person_generation,
-                aspect_ratio=config.aspect_ratio,
-                number_of_videos=1,
-            ),
-        )
-
-        task = GenerationTask(
-            id=task_id,
-            prompt=prompt,
-            config=config,
-            status=VideoStatus.GENERATING,
-            video_asset=VideoAsset(
-                id=str(uuid.uuid4()),
-                status=VideoStatus.GENERATING,
-                metadata=VideoMetadata(
-                    title=title,
-                    resolution=config.resolution,
-                    duration_seconds=config.duration_seconds,
-                    has_audio=True,
-                    tags=tags or [],
-                ),
-                generation_task_id=task_id,
-            ),
-        )
-
+        """Submit generation and block until the video is ready."""
+        operation, task = self.submit_generation(prompt, config, title, tags)
         return self.poll_generation(operation, task, output_dir=output_dir)

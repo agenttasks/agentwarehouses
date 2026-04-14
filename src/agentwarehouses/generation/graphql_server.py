@@ -6,7 +6,7 @@ Run with: strawberry server agentwarehouses.generation.graphql_server:schema
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 import strawberry
 
@@ -35,49 +35,6 @@ from agentwarehouses.models.video import (
 from agentwarehouses.models.video import (
     VideoResolution as ResolutionEnum,
 )
-
-# ── Strawberry Enum Types ────────────────────────────────────────
-
-
-@strawberry.enum
-class GQLVideoStatus:
-    PENDING = "pending"
-    GENERATING = "generating"
-    READY = "ready"
-    UPLOADING = "uploading"
-    PUBLISHED = "published"
-    FAILED = "failed"
-
-
-@strawberry.enum
-class GQLPlatform:
-    TIKTOK = "tiktok"
-    YOUTUBE_SHORTS = "youtube_shorts"
-    INSTAGRAM_REELS = "instagram_reels"
-
-
-@strawberry.enum
-class GQLVideoResolution:
-    SD_480P = "480p"
-    HD_720P = "720p"
-    HD_1080P = "1080p"
-    UHD_4K = "4k"
-
-
-@strawberry.enum
-class GQLGenerationModel:
-    VEO_3_1_FAST = "veo-3.1-fast-generate-001"
-    VEO_3_1_QUALITY = "veo-3.1-generate-001"
-
-
-@strawberry.enum
-class GQLPromptStyle:
-    CINEMATIC = "cinematic"
-    DOCUMENTARY = "documentary"
-    COMMERCIAL = "commercial"
-    MUSIC_VIDEO = "music_video"
-    VLOG = "vlog"
-
 
 # ── Strawberry Object Types ──────────────────────────────────────
 
@@ -281,13 +238,16 @@ class Mutation:
             negative_prompt=input.negative_prompt,
         )
 
-        client = VeoClient()
-        _operation, task = client.submit_generation(
-            prompt=input.prompt,
-            config=config,
-            title=input.title,
-            tags=input.tags,
-        )
+        try:
+            client = VeoClient()
+            _operation, task = client.submit_generation(
+                prompt=input.prompt,
+                config=config,
+                title=input.title,
+                tags=input.tags,
+            )
+        except Exception as exc:
+            raise ValueError(f"Video generation failed: {exc}") from exc
 
         if task.video_asset:
             task.video_asset.platforms = [PlatformEnum(p) for p in input.platforms]
@@ -301,14 +261,17 @@ class Mutation:
         """Generate a cinematic prompt using Claude Opus 4.6."""
         from agentwarehouses.generation.claude_prompts import CinematicPromptGenerator
 
-        generator = CinematicPromptGenerator()
-        request = CinematicPromptRequest(
-            topic=input.topic,
-            style=PromptStyleEnum(input.style),
-            duration_seconds=input.duration_seconds,
-            include_audio_direction=input.include_audio_direction,
-        )
-        response = generator.generate(request)
+        try:
+            generator = CinematicPromptGenerator()
+            request = CinematicPromptRequest(
+                topic=input.topic,
+                style=PromptStyleEnum(input.style),
+                duration_seconds=input.duration_seconds,
+                include_audio_direction=input.include_audio_direction,
+            )
+            response = generator.generate(request)
+        except Exception as exc:
+            raise ValueError(f"Prompt generation failed: {exc}") from exc
         return response.prompt
 
     @strawberry.mutation
@@ -345,7 +308,7 @@ class Mutation:
 
         task.status = VideoStatus.PENDING
         task.error = None
-        task.created_at = datetime.utcnow()
+        task.created_at = datetime.now(timezone.utc)
         return _pydantic_to_gql_gen_task(task)
 
     @strawberry.mutation

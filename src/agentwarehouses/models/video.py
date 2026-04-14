@@ -6,7 +6,7 @@ generation, Veo 3.1 video generation, and multi-platform social distribution.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -93,8 +93,8 @@ class VideoAsset(BaseModel):
     platforms: list[Platform] = Field(default_factory=list)
     metadata: VideoMetadata
     generation_task_id: str | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 # ── Generation ───────────────────────────────────────────────────
@@ -121,7 +121,7 @@ class GenerationTask(BaseModel):
     status: VideoStatus = VideoStatus.PENDING
     video_asset: VideoAsset | None = None
     error: str | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class CinematicPromptRequest(BaseModel):
@@ -172,7 +172,7 @@ class DistributionTask(BaseModel):
     video_asset_id: str
     platforms: list[Platform] = Field(min_length=1)
     results: list[DistributionResult] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 # ── Social Platform Configs ──────────────────────────────────────

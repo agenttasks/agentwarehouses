@@ -11,13 +11,15 @@ from typing import Any
 
 import anthropic
 
+from agentwarehouses.log import get_logger
 from agentwarehouses.models.video import (
     CinematicPromptRequest,
     CinematicPromptResponse,
     PromptStyle,
 )
 
-# Style-specific system prompt fragments
+logger = get_logger(__name__)
+
 _STYLE_DIRECTIONS: dict[PromptStyle, str] = {
     PromptStyle.CINEMATIC: (
         "You are a cinematographer writing shot descriptions. "
@@ -64,6 +66,26 @@ _AUDIO_DIRECTION = "- Include audio/sound design direction (ambient sounds, musi
 _NO_AUDIO = "- Do NOT include audio direction; video will be silent or have separate audio."
 
 
+def _build_system_prompt(request: CinematicPromptRequest) -> str:
+    return _SYSTEM_PROMPT.format(
+        style_direction=_STYLE_DIRECTIONS[request.style],
+        duration=request.duration_seconds,
+        audio_line=_AUDIO_DIRECTION if request.include_audio_direction else _NO_AUDIO,
+    )
+
+
+def _extract_usage(message: anthropic.types.Message) -> dict[str, Any]:
+    usage: dict[str, Any] = {
+        "input_tokens": message.usage.input_tokens,
+        "output_tokens": message.usage.output_tokens,
+    }
+    if hasattr(message.usage, "cache_read_input_tokens"):
+        usage["cache_read_input_tokens"] = message.usage.cache_read_input_tokens
+    if hasattr(message.usage, "cache_creation_input_tokens"):
+        usage["cache_creation_input_tokens"] = message.usage.cache_creation_input_tokens
+    return usage
+
+
 class CinematicPromptGenerator:
     """Generates cinematic video prompts using Claude Opus 4.6."""
 
@@ -73,59 +95,45 @@ class CinematicPromptGenerator:
 
     def generate(self, request: CinematicPromptRequest) -> CinematicPromptResponse:
         """Generate a cinematic prompt from a topic description."""
-        system = _SYSTEM_PROMPT.format(
-            style_direction=_STYLE_DIRECTIONS[request.style],
-            duration=request.duration_seconds,
-            audio_line=_AUDIO_DIRECTION if request.include_audio_direction else _NO_AUDIO,
-        )
-
-        message = self._client.messages.create(
-            model=self._model,
-            max_tokens=2048,
-            system=system,
-            messages=[{"role": "user", "content": request.topic}],
-        )
-
-        prompt_text = message.content[0].text
-        usage: dict[str, Any] = {
-            "input_tokens": message.usage.input_tokens,
-            "output_tokens": message.usage.output_tokens,
-        }
-        if hasattr(message.usage, "cache_read_input_tokens"):
-            usage["cache_read_input_tokens"] = message.usage.cache_read_input_tokens
-        if hasattr(message.usage, "cache_creation_input_tokens"):
-            usage["cache_creation_input_tokens"] = message.usage.cache_creation_input_tokens
+        try:
+            message = self._client.messages.create(
+                model=self._model,
+                max_tokens=2048,
+                system=_build_system_prompt(request),
+                messages=[{"role": "user", "content": request.topic}],
+            )
+        except anthropic.APIError:
+            logger.exception("Claude API call failed for topic: %s", request.topic[:80])
+            raise
 
         return CinematicPromptResponse(
-            prompt=prompt_text,
+            prompt=message.content[0].text,
             style=request.style,
             model_used=self._model,
-            usage=usage,
+            usage=_extract_usage(message),
         )
 
     def generate_with_negative(self, request: CinematicPromptRequest) -> CinematicPromptResponse:
         """Generate both a prompt and a negative prompt for better Veo 3.1 results."""
-        system = _SYSTEM_PROMPT.format(
-            style_direction=_STYLE_DIRECTIONS[request.style],
-            duration=request.duration_seconds,
-            audio_line=_AUDIO_DIRECTION if request.include_audio_direction else _NO_AUDIO,
-        )
-
-        message = self._client.messages.create(
-            model=self._model,
-            max_tokens=2048,
-            system=system,
-            messages=[
-                {
-                    "role": "user",
-                    "content": (
-                        f"{request.topic}\n\n"
-                        "After the main prompt, on a new line starting with 'NEGATIVE:', "
-                        "list what to avoid (artifacts, distortions, unwanted elements)."
-                    ),
-                }
-            ],
-        )
+        try:
+            message = self._client.messages.create(
+                model=self._model,
+                max_tokens=2048,
+                system=_build_system_prompt(request),
+                messages=[
+                    {
+                        "role": "user",
+                        "content": (
+                            f"{request.topic}\n\n"
+                            "After the main prompt, on a new line starting with 'NEGATIVE:', "
+                            "list what to avoid (artifacts, distortions, unwanted elements)."
+                        ),
+                    }
+                ],
+            )
+        except anthropic.APIError:
+            logger.exception("Claude API call failed for topic: %s", request.topic[:80])
+            raise
 
         raw = message.content[0].text
         if "NEGATIVE:" in raw:
@@ -136,15 +144,10 @@ class CinematicPromptGenerator:
             prompt_text = raw.strip()
             negative = None
 
-        usage: dict[str, Any] = {
-            "input_tokens": message.usage.input_tokens,
-            "output_tokens": message.usage.output_tokens,
-        }
-
         return CinematicPromptResponse(
             prompt=prompt_text,
             negative_prompt=negative,
             style=request.style,
             model_used=self._model,
-            usage=usage,
+            usage=_extract_usage(message),
         )
