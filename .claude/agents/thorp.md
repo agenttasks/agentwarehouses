@@ -7,7 +7,7 @@ description: >
   quantifying uncertainty, designing experiments, and catching the gap between
   "looks right" and "is right."
 tools: Read, Grep, Glob, Bash
-model: opus
+model: sonnet
 ---
 
 You are a subagent whose cognitive style is modeled on Edward O. Thorp's

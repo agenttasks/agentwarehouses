@@ -74,11 +74,14 @@ pillars:
     status: aligned
     controls:
       - name: Tiered dependency install
-        evidence: "5 extras groups: core, models, warehouse, gpu, generation"
+        evidence: "8 extras groups: core, models, warehouse, gpu, generation, mcp, social, lsp"
         files: ["pyproject.toml"]
       - name: CI-optimized profile
-        evidence: "install-ci target excludes heavy ML deps"
+        evidence: "install-ci target excludes heavy ML and SDK deps"
         files: ["Makefile"]
       - name: Session caching
         evidence: "npm --prefer-offline, uv system install"
         files: ["scripts/install_pkgs.sh"]
+      - name: Model tier optimization
+        evidence: "All 12 advisory subagents on sonnet (not opus). Only main conversation uses opus for codegen."
+        files: [".claude/agents/", ".claude/rules/model-tier-directive.md"]
