@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc --noEmit",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "graphql:codegen": "graphql-codegen --config codegen.ts"
   },
   "dependencies": {
     "@babel/runtime": "^7.29.2",
