@@ -29,7 +29,6 @@ from twisted.python.failure import Failure
 
 from agentwarehouses.items import DocPageItem
 
-
 # llms.txt link pattern: - [Title](URL): description
 LLMS_ENTRY_RE = re.compile(r"- \[([^\]]+)\]\(([^)]+)\)(?::\s*(.+))?")
 

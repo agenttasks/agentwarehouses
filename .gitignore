@@ -17,3 +17,17 @@ htmlcov/
 venv/
 node_modules/
 package-lock.json
+dist/
+
+# Java
+java/build/
+java/.gradle/
+*.class
+
+# GraphQL codegen output
+src/social/__generated__/
+.graphql-cache/
+
+# LSP
+.jdtls/
+.lsp-data/

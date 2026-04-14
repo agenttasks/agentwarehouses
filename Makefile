@@ -2,6 +2,7 @@
 SHELL := /bin/bash
 PYTHON := python
 UV := uv
+GRADLE := /opt/gradle/bin/gradle
 NPROC := $(shell nproc 2>/dev/null || echo 4)
 
 # ──────────────────────────────────────────────
@@ -35,8 +36,22 @@ install-gpu: ## Install full GPU tier (torch + sentence-transformers + dspy)
 install-node: ## Install Node.js deps (Cube.js, Neon, Zod, TypeScript)
 	npm install --prefer-offline --no-audit
 
+.PHONY: install-sdks
+install-sdks: ## Install MCP + Claude + TikTok SDKs (Python + Node.js)
+	$(UV) pip install --system -e ".[mcp,social,generation]"
+	npm install --prefer-offline --no-audit
+
+.PHONY: install-java
+install-java: ## Build Java MCP SDK module (requires JDK 21 + Gradle)
+	cd java && $(GRADLE) build --no-daemon
+
+.PHONY: install-lsp
+install-lsp: ## Install LSP servers (pylsp, typescript-language-server)
+	$(UV) pip install --system -e ".[lsp]"
+	npm install -g typescript-language-server
+
 .PHONY: install-all
-install-all: install-dev install-node ## Install everything (Python CPU + Node.js)
+install-all: install-dev install-node install-sdks ## Install everything (Python CPU + Node.js + SDKs)
 
 .PHONY: install-ci
 install-ci: ## Install for CI (no editable, CPU-only, no torch)
@@ -86,6 +101,14 @@ lint-fix: ## Auto-fix lint issues
 .PHONY: typecheck
 typecheck: ## Run mypy strict type checking
 	mypy src/agentwarehouses/
+
+.PHONY: typecheck-ts
+typecheck-ts: ## Run TypeScript type checking
+	npx tsc --noEmit
+
+.PHONY: graphql-codegen
+graphql-codegen: ## Generate TypeScript types from GraphQL schema
+	npx graphql-codegen --config codegen.ts
 
 # ──────────────────────────────────────────────
 # Crawl
