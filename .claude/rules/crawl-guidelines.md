@@ -1,6 +1,6 @@
 When working on this project:
 
-- The crawler uses Scrapy with BOT_NAME "Claudebot" and USER_AGENT identifying as Claudebot/2.1.107
+- The crawler uses Scrapy with BOT_NAME "Claudebot" and USER_AGENT identifying as Claudebot/2.1.109
 - Always obey robots.txt (ROBOTSTXT_OBEY = True)
 - Use rbloom Bloom filters for URL deduplication, not sets (memory efficient)
 - Use orjson for all JSON serialization (faster than stdlib json)

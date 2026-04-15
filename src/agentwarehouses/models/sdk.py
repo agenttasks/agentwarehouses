@@ -84,6 +84,7 @@ class ThinkingBlock(BaseModel):
     type: Literal["thinking"] = "thinking"
     thinking: str
     signature: str
+    progress_hint: str | None = None
 
 
 class ToolUseBlock(BaseModel):

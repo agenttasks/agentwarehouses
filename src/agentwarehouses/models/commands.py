@@ -90,3 +90,18 @@ CMD_EFFORT = CommandDefinition(
         )
     ],
 )
+
+# Commands added in 2.1.108
+
+CMD_RECAP = CommandDefinition(
+    name="/recap",
+    description="Show recap of session activity; configurable in /config",
+    command_type=CommandType.BUILT_IN,
+)
+
+CMD_UNDO = CommandDefinition(
+    name="/undo",
+    description="Undo last action (alias for /rewind)",
+    command_type=CommandType.BUILT_IN,
+    aliases=["/rewind"],
+)

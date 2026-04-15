@@ -159,3 +159,56 @@ API_TIMEOUT_MS = EnvVarDefinition(
     description="API request timeout in milliseconds (default 10 min)",
     category=EnvVarCategory.NETWORK,
 )
+
+# Prompt caching env vars (2.1.108+)
+
+ENABLE_PROMPT_CACHING_1H = EnvVarDefinition(
+    name="ENABLE_PROMPT_CACHING_1H",
+    type=EnvVarType.BOOLEAN,
+    default="0",
+    description="Opt into 1-hour prompt cache TTL on API key, Bedrock, Vertex, and Foundry",
+    category=EnvVarCategory.FEATURES,
+)
+
+ENABLE_PROMPT_CACHING_1H_BEDROCK = EnvVarDefinition(
+    name="ENABLE_PROMPT_CACHING_1H_BEDROCK",
+    type=EnvVarType.BOOLEAN,
+    default="0",
+    description="Deprecated: use ENABLE_PROMPT_CACHING_1H instead. Still honored for Bedrock.",
+    category=EnvVarCategory.FEATURES,
+)
+
+FORCE_PROMPT_CACHING_5M = EnvVarDefinition(
+    name="FORCE_PROMPT_CACHING_5M",
+    type=EnvVarType.BOOLEAN,
+    default="0",
+    description="Force 5-minute prompt cache TTL",
+    category=EnvVarCategory.FEATURES,
+)
+
+DISABLE_PROMPT_CACHING = EnvVarDefinition(
+    name="DISABLE_PROMPT_CACHING",
+    type=EnvVarType.BOOLEAN,
+    default="0",
+    description="Disable prompt caching entirely (shows warning at startup when set)",
+    category=EnvVarCategory.FEATURES,
+)
+
+# Recap / away summary (2.1.108+)
+
+CLAUDE_CODE_ENABLE_AWAY_SUMMARY = EnvVarDefinition(
+    name="CLAUDE_CODE_ENABLE_AWAY_SUMMARY",
+    type=EnvVarType.BOOLEAN,
+    default="0",
+    description="Force recap/away-summary on session resume even when telemetry is disabled",
+    category=EnvVarCategory.FEATURES,
+)
+
+# Bash env file (2.1.108 fix)
+
+CLAUDE_ENV_FILE = EnvVarDefinition(
+    name="CLAUDE_ENV_FILE",
+    type=EnvVarType.STRING,
+    description="Path to env file loaded by Bash tool (e.g. ~/.zprofile)",
+    category=EnvVarCategory.BASH,
+)

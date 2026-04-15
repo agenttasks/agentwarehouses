@@ -1,4 +1,4 @@
-"""OpenTelemetry configuration and metric/event types for Claude Code 2.1.107."""
+"""OpenTelemetry configuration and metric/event types for Claude Code 2.1.109."""
 
 from __future__ import annotations
 
@@ -98,5 +98,5 @@ RESOURCE_ATTRS = {
     "service.name": "agentwarehouses",
     "service.version": "0.2.0",
     "bot.name": "Claudebot",
-    "bot.version": "2.1.107",
+    "bot.version": "2.1.109",
 }

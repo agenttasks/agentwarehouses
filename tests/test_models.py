@@ -31,6 +31,7 @@ from agentwarehouses.models import (
     PreCompactInput,
     ResultMessage,
     SemVer,
+    SessionCLIFlags,
     SessionInfo,
     SettingSource,
     SkillEvalCase,
@@ -38,6 +39,7 @@ from agentwarehouses.models import (
     SkillFrontmatter,
     TeamTask,
     TextBlock,
+    ThinkingBlock,
     ToolCategory,
     ToolDefinition,
     ToolName,
@@ -273,6 +275,14 @@ class TestSessionModels:
         si = SessionInfo(session_id="abc123", summary="Test session", last_modified=1234567890)
         assert si.session_id == "abc123"
 
+    def test_session_cli_flags_recap(self):
+        flags = SessionCLIFlags(recap=True)
+        assert flags.recap is True
+
+    def test_session_cli_flags_recap_default(self):
+        flags = SessionCLIFlags()
+        assert flags.recap is None
+
 
 class TestOtelModels:
     def test_otel_config_defaults(self):
@@ -311,6 +321,14 @@ class TestSdkModels:
         )
         assert rm.total_cost_usd == 0.05
 
+    def test_thinking_block_progress_hint(self):
+        tb = ThinkingBlock(thinking="reasoning...", signature="sig123", progress_hint="Analyzing code")
+        assert tb.progress_hint == "Analyzing code"
+
+    def test_thinking_block_no_hint(self):
+        tb = ThinkingBlock(thinking="reasoning...", signature="sig123")
+        assert tb.progress_hint is None
+
 
 class TestPermissionModels:
     def test_permission_mode_enum(self):
@@ -346,6 +364,18 @@ class TestCommandModels:
     def test_command_definition(self):
         cd = CommandDefinition(name="/clear", description="Clear conversation", command_type="built_in")
         assert cd.name == "/clear"
+
+    def test_recap_command(self):
+        from agentwarehouses.models.commands import CMD_RECAP
+
+        assert CMD_RECAP.name == "/recap"
+        assert CMD_RECAP.command_type == "built_in"
+
+    def test_undo_command(self):
+        from agentwarehouses.models.commands import CMD_UNDO
+
+        assert CMD_UNDO.name == "/undo"
+        assert "/rewind" in CMD_UNDO.aliases
 
 
 class TestSettingSource:
@@ -385,3 +415,21 @@ class TestEnvVarModels:
         assert CLAUDE_CODE_SYNC_PLUGIN_INSTALL.category == EnvVarCategory.PLUGINS
         assert API_TIMEOUT_MS.category == EnvVarCategory.NETWORK
         assert API_TIMEOUT_MS.default == "600000"
+
+    def test_prompt_caching_env_vars_exist(self):
+        from agentwarehouses.models.env_vars import (
+            CLAUDE_CODE_ENABLE_AWAY_SUMMARY,
+            CLAUDE_ENV_FILE,
+            DISABLE_PROMPT_CACHING,
+            ENABLE_PROMPT_CACHING_1H,
+            ENABLE_PROMPT_CACHING_1H_BEDROCK,
+            FORCE_PROMPT_CACHING_5M,
+        )
+
+        assert ENABLE_PROMPT_CACHING_1H.category == EnvVarCategory.FEATURES
+        assert ENABLE_PROMPT_CACHING_1H_BEDROCK.category == EnvVarCategory.FEATURES
+        assert "Deprecated" in ENABLE_PROMPT_CACHING_1H_BEDROCK.description
+        assert FORCE_PROMPT_CACHING_5M.category == EnvVarCategory.FEATURES
+        assert DISABLE_PROMPT_CACHING.category == EnvVarCategory.FEATURES
+        assert CLAUDE_CODE_ENABLE_AWAY_SUMMARY.category == EnvVarCategory.FEATURES
+        assert CLAUDE_ENV_FILE.category == EnvVarCategory.BASH
