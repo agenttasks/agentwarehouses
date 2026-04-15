@@ -80,6 +80,8 @@ research = [
     "pydantic>=2.9,<4.0",
     "tenacity>=9.0,<10.0",
     "python-dotenv>=1.0,<2.0",
+    "scikit-learn>=1.5,<2.0",
+    "sentence-transformers>=3.3,<4.0",
 ]
 
 # ── MCP + Claude Agent SDKs ───────────────────────────────
