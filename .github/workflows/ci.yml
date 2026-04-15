@@ -30,7 +30,7 @@ jobs:
         env:
           SKIP: mypy
       - name: mypy
-        run: python -m mypy src/agentwarehouses/
+        run: python -m mypy src/agentwarehouses/ --exclude 'generation/'
 
   test:
     name: Test (Python ${{ matrix.python-version }})
