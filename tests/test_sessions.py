@@ -25,7 +25,7 @@ def tmp_sessions(tmp_path: Path) -> Path:
         "# Research Scratchpad: {{ topic }}\n\n**Session started:** {{ date }}\n\n---\n\n## Running Notes\n\n"
     )
     (templates_dir / "blog_post.md.j2").write_text(
-        "---\ntitle: \"{{ title }}\"\ndate: {{ date }}\nauthor: {{ author }}\n"
+        '---\ntitle: "{{ title }}"\ndate: {{ date }}\nauthor: {{ author }}\n'
         "tags: [{{ tags | join(', ') }}]\nsession: {{ session_id }}\ntopic: {{ topic }}\n"
         "status: draft\n---\n\n# {{ title }}\n\n> {{ summary }}\n\n---\n\n{{ body }}\n\n"
         "---\n\n*Research session `{{ session_id }}` — topic: {{ topic }}*\n"

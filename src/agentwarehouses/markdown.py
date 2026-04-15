@@ -25,6 +25,7 @@ Usage:
     result.frontmatter    # YAML frontmatter dict (if present)
     result.ast            # The immutable DocumentAST for custom queries
 """
+
 from __future__ import annotations
 
 import re
@@ -140,6 +141,7 @@ def _parse_frontmatter(raw: str) -> dict[str, Any]:
     """Parse YAML frontmatter string into a dict."""
     try:
         import yaml
+
         return yaml.safe_load(raw) or {}
     except Exception:
         result: dict[str, Any] = {}
@@ -180,11 +182,13 @@ def _walk_tokens(tokens: list[Token]) -> DocumentAST:
         if tok.type == "heading_open" and tok.tag:
             # Close previous section
             if in_section:
-                sections.append(Section(
-                    level=section_level,
-                    title=section_title,
-                    body="\n".join(section_body).strip(),
-                ))
+                sections.append(
+                    Section(
+                        level=section_level,
+                        title=section_title,
+                        body="\n".join(section_body).strip(),
+                    )
+                )
                 section_body = []
 
             in_heading = True
@@ -224,11 +228,13 @@ def _walk_tokens(tokens: list[Token]) -> DocumentAST:
 
     # Close final section
     if in_section:
-        sections.append(Section(
-            level=section_level,
-            title=section_title,
-            body="\n".join(section_body).strip(),
-        ))
+        sections.append(
+            Section(
+                level=section_level,
+                title=section_title,
+                body="\n".join(section_body).strip(),
+            )
+        )
 
     return DocumentAST(
         headings=tuple(headings),
@@ -332,7 +338,7 @@ class MarkdownParser:
         fm_match = _FRONTMATTER_RE.match(text)
         if fm_match:
             frontmatter = _parse_frontmatter(fm_match.group(1))
-            body = text[fm_match.end():]
+            body = text[fm_match.end() :]
 
         # Stage 1: Single-pass token walk → immutable AST
         tokens = self._md.parse(body)

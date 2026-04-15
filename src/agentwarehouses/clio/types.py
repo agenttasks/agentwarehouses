@@ -4,6 +4,7 @@ Adapted from OpenClio's opencliotypes.py for document analysis.
 Uses Pydantic instead of dataclasses for validation consistency
 with the rest of agentwarehouses.
 """
+
 from __future__ import annotations
 
 import numpy as np

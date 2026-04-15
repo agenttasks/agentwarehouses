@@ -13,6 +13,7 @@ Pipeline stages:
   4. build_hierarchy()   — recursive clustering into tree
   5. summarize()         — LLM names and descriptions for clusters
 """
+
 from __future__ import annotations
 
 import re
@@ -118,19 +119,21 @@ class ClioPipeline:
         results: list[DocumentFacets] = []
 
         for i, doc in enumerate(documents):
-            body = doc.get("body_markdown", "")[:self.config.max_doc_tokens * 4]  # rough char limit
+            body = doc.get("body_markdown", "")[: self.config.max_doc_tokens * 4]  # rough char limit
             facet_values: list[FacetValue] = []
 
             for facet in self.facets:
                 value = self._extract_single_facet(facet, body)
                 facet_values.append(FacetValue(facet_name=facet.name, value=value))
 
-            results.append(DocumentFacets(
-                doc_index=i,
-                url=doc.get("url", ""),
-                title=doc.get("title", ""),
-                facet_values=facet_values,
-            ))
+            results.append(
+                DocumentFacets(
+                    doc_index=i,
+                    url=doc.get("url", ""),
+                    title=doc.get("title", ""),
+                    facet_values=facet_values,
+                )
+            )
 
             if self.config.verbose and (i + 1) % 10 == 0:
                 logger.info("  Facets extracted: %d/%d", i + 1, len(documents))
@@ -161,9 +164,7 @@ class ClioPipeline:
 
     # ── Stage 2: Embedding ───────────────────────────────────────────
 
-    def embed_facets(
-        self, doc_facets: list[DocumentFacets]
-    ) -> dict[str, EmbeddingArray]:
+    def embed_facets(self, doc_facets: list[DocumentFacets]) -> dict[str, EmbeddingArray]:
         """Generate embeddings for each clusterable facet.
 
         Returns dict mapping facet_name -> (n_docs, embed_dim) array.
@@ -233,17 +234,17 @@ class ClioPipeline:
                     continue
 
                 # Sample docs for naming
-                name, summary = self._name_cluster(
-                    facet, doc_facets, indices, labels, cid
-                )
+                name, summary = self._name_cluster(facet, doc_facets, indices, labels, cid)
 
-                clusters.append(Cluster(
-                    facet_name=facet.name,
-                    name=name,
-                    summary=summary,
-                    doc_indices=indices,
-                    level=0,
-                ))
+                clusters.append(
+                    Cluster(
+                        facet_name=facet.name,
+                        name=name,
+                        summary=summary,
+                        doc_indices=indices,
+                        level=0,
+                    )
+                )
 
             base_clusters[facet.name] = clusters
 
@@ -287,9 +288,7 @@ class ClioPipeline:
 
     # ── Stage 4: Hierarchy ───────────────────────────────────────────
 
-    def build_hierarchy(
-        self, base_clusters: dict[str, list[Cluster]]
-    ) -> dict[str, list[Cluster]]:
+    def build_hierarchy(self, base_clusters: dict[str, list[Cluster]]) -> dict[str, list[Cluster]]:
         """Recursively build cluster hierarchies using k-means + LLM naming.
 
         Mirrors OpenClio's getHierarchy(): at each level, cluster the
@@ -317,7 +316,9 @@ class ClioPipeline:
 
                 logger.info(
                     "  Hierarchy level %d: %d clusters -> %d parents",
-                    level, len(current_level), n_parents,
+                    level,
+                    len(current_level),
+                    n_parents,
                 )
 
                 # Embed cluster descriptions
@@ -349,14 +350,16 @@ class ClioPipeline:
                     for child in children:
                         all_doc_indices.extend(child.doc_indices)
 
-                    parents.append(Cluster(
-                        facet_name=facet_name,
-                        name=parent_name,
-                        summary="",
-                        doc_indices=all_doc_indices,
-                        children=children,
-                        level=level,
-                    ))
+                    parents.append(
+                        Cluster(
+                            facet_name=facet_name,
+                            name=parent_name,
+                            summary="",
+                            doc_indices=all_doc_indices,
+                            children=children,
+                            level=level,
+                        )
+                    )
 
                 # Rename parents based on actual children
                 for parent in parents:
@@ -372,12 +375,11 @@ class ClioPipeline:
 
         return root_clusters
 
-    def _generate_hierarchy_names(
-        self, clusters: list[Cluster], n_target: int
-    ) -> list[str]:
+    def _generate_hierarchy_names(self, clusters: list[Cluster], n_target: int) -> list[str]:
         """Generate higher-level category names from cluster descriptions."""
         cluster_list = "\n".join(
-            f"- {c.name}: {c.summary}" for c in clusters[:50]  # cap for prompt length
+            f"- {c.name}: {c.summary}"
+            for c in clusters[:50]  # cap for prompt length
         )
 
         prompt = HIERARCHY_NAMES.format(
@@ -388,15 +390,16 @@ class ClioPipeline:
 
         response = self._call_llm(prompt)
         categories_text = self._extract_tag(response, "categories") or response
-        names = [line.strip().lstrip("- ").lstrip("0123456789.)")
-                 for line in categories_text.strip().split("\n") if line.strip()]
+        names = [
+            line.strip().lstrip("- ").lstrip("0123456789.)")
+            for line in categories_text.strip().split("\n")
+            if line.strip()
+        ]
         return names
 
     def _rename_parent(self, parent: Cluster) -> tuple[str, str]:
         """Rename a parent cluster based on its actual children."""
-        children_list = "\n".join(
-            f"- {c.name}" for c in (parent.children or [])[:10]
-        )
+        children_list = "\n".join(f"- {c.name}" for c in (parent.children or [])[:10])
 
         prompt = HIERARCHY_RENAME.format(
             category_name=parent.name,
@@ -414,6 +417,7 @@ class ClioPipeline:
         """Lazy-load sentence-transformer model."""
         if self._embedder is None:
             from sentence_transformers import SentenceTransformer
+
             self._embedder = SentenceTransformer(self.config.embedding_model)
             logger.info("Loaded embedding model: %s", self.config.embedding_model)
         return self._embedder
@@ -422,6 +426,7 @@ class ClioPipeline:
         """Lazy-load Anthropic client."""
         if self._client is None:
             import anthropic
+
             self._client = anthropic.Anthropic()
             logger.info("Initialized Anthropic client")
         return self._client
@@ -437,9 +442,7 @@ class ClioPipeline:
         )
         return response.content[0].text
 
-    def _format_samples(
-        self, doc_facets: list[DocumentFacets], facet_name: str, indices: Any
-    ) -> str:
+    def _format_samples(self, doc_facets: list[DocumentFacets], facet_name: str, indices: Any) -> str:
         """Format document samples for LLM prompts."""
         lines = []
         for idx in indices:
@@ -481,8 +484,6 @@ class ClioPipeline:
             "base_clusters": {k: len(v) for k, v in results.base_clusters.items()},
             "root_clusters": {k: len(v) for k, v in results.root_clusters.items()},
         }
-        (out_dir / "summary.json").write_bytes(
-            orjson.dumps(summary, option=orjson.OPT_INDENT_2)
-        )
+        (out_dir / "summary.json").write_bytes(orjson.dumps(summary, option=orjson.OPT_INDENT_2))
 
         logger.info("Results written to %s", out_dir)

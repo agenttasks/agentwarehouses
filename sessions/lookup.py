@@ -13,6 +13,7 @@ Format:
     device: "linux-x86_64"
     user_agent: "ClaudeBot/1.0"
 """
+
 from __future__ import annotations
 
 import hashlib

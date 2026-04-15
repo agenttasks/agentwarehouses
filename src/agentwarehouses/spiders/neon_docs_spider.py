@@ -14,6 +14,7 @@ Usage:
     scrapy crawl neon_docs -a max_pages=50
     scrapy crawl neon_docs -a sources=llms,sitemap
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -119,9 +120,7 @@ class NeonDocsSpider(scrapy.Spider):
                     errback=self.handle_error,
                 )
 
-    def parse_llms_txt(
-        self, response: Response, *, source: str
-    ) -> Generator[scrapy.Request | DocPageItem, None, None]:
+    def parse_llms_txt(self, response: Response, *, source: str) -> Generator[scrapy.Request | DocPageItem, None, None]:
         """Parse llms.txt and yield requests for each linked page."""
         entries = LLMS_ENTRY_RE.findall(response.text)
         self.logger.info("[%s] Found %d entries in llms.txt", source, len(entries))
@@ -137,9 +136,7 @@ class NeonDocsSpider(scrapy.Spider):
                 errback=self.handle_error,
             )
 
-    def parse_sitemap(
-        self, response: Response, *, source: str
-    ) -> Generator[scrapy.Request, None, None]:
+    def parse_sitemap(self, response: Response, *, source: str) -> Generator[scrapy.Request, None, None]:
         """Parse sitemap XML and yield requests for doc pages."""
         urls = SITEMAP_LOC_RE.findall(response.text)
         self.logger.info("[%s] Found %d URLs in sitemap", source, len(urls))
@@ -227,8 +224,7 @@ class NeonDocsSpider(scrapy.Spider):
     def closed(self, reason: str) -> None:
         """Log crawl summary stats on spider close."""
         self.logger.info(
-            "Crawl complete: discovered=%d fetched=%d dedup_skipped=%d "
-            "lang_skipped=%d failed=%d guides=%d reason=%s",
+            "Crawl complete: discovered=%d fetched=%d dedup_skipped=%d lang_skipped=%d failed=%d guides=%d reason=%s",
             self._stats["discovery_urls"],
             self._stats["pages_fetched"],
             self._stats["pages_skipped_dedup"],

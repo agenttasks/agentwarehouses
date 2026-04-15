@@ -25,10 +25,7 @@ SAMPLE_DOCS = [
     {
         "url": "https://example.com/docs/getting-started",
         "title": "Getting Started",
-        "body_markdown": (
-            "# Getting Started\n\nInstall the CLI and start coding."
-            "\n\n## Prerequisites\n\nPython 3.11+"
-        ),
+        "body_markdown": ("# Getting Started\n\nInstall the CLI and start coding.\n\n## Prerequisites\n\nPython 3.11+"),
     },
     {
         "url": "https://example.com/docs/api-reference",
@@ -43,8 +40,7 @@ SAMPLE_DOCS = [
         "url": "https://example.com/docs/security",
         "title": "Security Guide",
         "body_markdown": (
-            "# Security\n\n## Authentication\n\nUse API keys for auth."
-            "\n\n## Best Practices\n\nRotate keys regularly."
+            "# Security\n\n## Authentication\n\nUse API keys for auth.\n\n## Best Practices\n\nRotate keys regularly."
         ),
     },
 ]
@@ -242,11 +238,15 @@ class TestPipelineFormatSamples:
         pipeline = ClioPipeline()
         doc_facets = [
             DocumentFacets(
-                doc_index=0, url="https://a.com", title="Doc A",
+                doc_index=0,
+                url="https://a.com",
+                title="Doc A",
                 facet_values=[FacetValue(facet_name="topic", value="Getting started guide")],
             ),
             DocumentFacets(
-                doc_index=1, url="https://b.com", title="Doc B",
+                doc_index=1,
+                url="https://b.com",
+                title="Doc B",
                 facet_values=[FacetValue(facet_name="topic", value="API reference")],
             ),
         ]
@@ -299,7 +299,8 @@ class TestPipelineBaseCluster:
 
         doc_facets = [
             DocumentFacets(
-                doc_index=i, title=f"Doc {i}",
+                doc_index=i,
+                title=f"Doc {i}",
                 facet_values=[FacetValue(facet_name="topic", value=f"Value {i}")],
             )
             for i in range(10)

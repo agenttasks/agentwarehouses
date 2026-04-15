@@ -9,10 +9,7 @@ NEWSPIDER_MODULE = "agentwarehouses.spiders"
 #   Claude-SearchBot — search index crawling
 # Ref: https://support.claude.com/en/articles/8896518
 # Ref: https://claude.com/crawling/bots.json
-USER_AGENT = (
-    "Mozilla/5.0 AppleWebKit/537.36 "
-    "(KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)"
-)
+USER_AGENT = "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)"
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True

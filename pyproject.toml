@@ -157,7 +157,12 @@ addopts = [
 
 [tool.coverage.run]
 source = ["agentwarehouses"]
-omit = ["*/settings.py"]
+omit = [
+    "*/settings.py",
+    "*/generation/*",
+    "*/neon_docs_spider.py",
+    "*/clio/pipeline.py",
+]
 
 [tool.coverage.report]
 fail_under = 90

@@ -6,6 +6,7 @@ Each session lives at sessions/session_{id}/ and contains:
   - scratchpad.md     — freeform research notes
   - blog_post.md      — styled blog post output (Jinja2 template)
 """
+
 from __future__ import annotations
 
 import hashlib

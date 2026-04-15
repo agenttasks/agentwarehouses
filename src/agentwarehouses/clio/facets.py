@@ -7,6 +7,7 @@ These facets mirror the conversation facets from Anthropic's Clio paper
   - complexity: How technical is the content?
   - audience: Who is the target reader?
 """
+
 from __future__ import annotations
 
 from agentwarehouses.clio.types import Facet
@@ -32,8 +33,7 @@ DOC_TYPE_FACET = Facet(
 COMPLEXITY_FACET = Facet(
     name="complexity",
     question=(
-        "How technically complex is this document? "
-        "1=beginner-friendly overview, 5=advanced implementation details"
+        "How technically complex is this document? 1=beginner-friendly overview, 5=advanced implementation details"
     ),
     prefill="",
     numeric_range=(1, 5),

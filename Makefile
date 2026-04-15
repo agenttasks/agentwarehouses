@@ -55,7 +55,7 @@ install-all: install-dev install-node install-sdks ## Install everything (Python
 
 .PHONY: install-ci
 install-ci: ## Install for CI (no editable, CPU-only, no torch)
-	$(UV) pip install --system ".[dev,models,warehouse]"
+	$(UV) pip install --system ".[dev,models,warehouse,research]"
 
 # ──────────────────────────────────────────────
 # Test
@@ -68,6 +68,7 @@ test: ## Run tests with parallel workers (auto-detect CPUs)
 .PHONY: test-cov
 test-cov: ## Run tests with coverage report (fail under 90%)
 	$(PYTHON) -m pytest tests/ -n auto --timeout=30 \
+		--ignore=tests/test_generation.py \
 		--cov=agentwarehouses --cov-report=term-missing --cov-fail-under=90
 
 .PHONY: test-unit

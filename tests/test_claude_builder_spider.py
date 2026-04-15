@@ -405,9 +405,7 @@ class TestParseSitemap:
 
 @pytest.mark.integration
 class TestParseDocPage:
-    def _fake_response(
-        self, body: str, url: str = "https://builder.claude.ai/docs/getting-started.md"
-    ) -> TextResponse:
+    def _fake_response(self, body: str, url: str = "https://builder.claude.ai/docs/getting-started.md") -> TextResponse:
         return TextResponse(url=url, body=body.encode("utf-8"))
 
     def test_parse_doc_page_yields_item(self) -> None:

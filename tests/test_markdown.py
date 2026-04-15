@@ -4,6 +4,7 @@ Covers all extraction methods: title, description, headings, code blocks,
 links, sections, frontmatter, body text, and HTML fallbacks. Also tests
 backward compatibility with the spider _extract_* static method API.
 """
+
 from __future__ import annotations
 
 import pytest

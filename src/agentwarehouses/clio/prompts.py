@@ -8,6 +8,7 @@ Prompt design follows Anthropic's Clio paper (Section 3.1):
   - Cluster naming receives samples inside + outside the cluster
   - Hierarchy naming operates on cluster descriptions, not raw docs
 """
+
 from __future__ import annotations
 
 # ── Stage 1: Facet extraction ────────────────────────────────────────

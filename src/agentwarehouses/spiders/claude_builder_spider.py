@@ -29,6 +29,7 @@ Usage:
     scrapy crawl claude_builder -a sources=llms,sitemap
     scrapy crawl claude_builder -a bot_role=training
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -58,16 +59,13 @@ LANG_FILTER_RE = re.compile(r"/(?:ja|de|fr|ko|zh|pt|es)(?:-[a-z]{2})?/")
 # Ref: https://support.claude.com/en/articles/8896518
 BOT_USER_AGENTS: dict[str, str] = {
     "training": (
-        "Mozilla/5.0 AppleWebKit/537.36 "
-        "(KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)"
+        "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)"
     ),
     "user": (
-        "Mozilla/5.0 AppleWebKit/537.36 "
-        "(KHTML, like Gecko; compatible; Claude-User/1.0; +claudebot@anthropic.com)"
+        "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Claude-User/1.0; +claudebot@anthropic.com)"
     ),
     "search": (
-        "Mozilla/5.0 AppleWebKit/537.36 "
-        "(KHTML, like Gecko; compatible; Claude-SearchBot/1.0; +claudebot@anthropic.com)"
+        "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Claude-SearchBot/1.0; +claudebot@anthropic.com)"
     ),
 }
 
@@ -169,9 +167,7 @@ class ClaudeBuilderSpider(scrapy.Spider):
             if not url:
                 self.logger.warning("Unknown source: %s", source_name)
                 continue
-            self.logger.info(
-                "Starting discovery from: %s (%s) role=%s", source_name, url, self.bot_role
-            )
+            self.logger.info("Starting discovery from: %s (%s) role=%s", source_name, url, self.bot_role)
             if source_name == "sitemap":
                 yield scrapy.Request(
                     url,
@@ -187,9 +183,7 @@ class ClaudeBuilderSpider(scrapy.Spider):
                     errback=self.handle_error,
                 )
 
-    def parse_llms_txt(
-        self, response: Response, *, source: str
-    ) -> Generator[scrapy.Request | DocPageItem, None, None]:
+    def parse_llms_txt(self, response: Response, *, source: str) -> Generator[scrapy.Request | DocPageItem, None, None]:
         """Parse llms.txt and yield requests for each linked page."""
         entries = LLMS_ENTRY_RE.findall(response.text)
         self.logger.info("[%s] Found %d entries in llms.txt", source, len(entries))
@@ -206,9 +200,7 @@ class ClaudeBuilderSpider(scrapy.Spider):
                 errback=self.handle_error,
             )
 
-    def parse_sitemap(
-        self, response: Response, *, source: str
-    ) -> Generator[scrapy.Request, None, None]:
+    def parse_sitemap(self, response: Response, *, source: str) -> Generator[scrapy.Request, None, None]:
         """Parse sitemap XML and yield requests for doc pages."""
         urls = SITEMAP_LOC_RE.findall(response.text)
         self.logger.info("[%s] Found %d URLs in sitemap", source, len(urls))
