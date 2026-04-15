@@ -248,6 +248,7 @@ class SessionTemplate:
         meta_path = self.root / "metadata.json"
         with open(meta_path, "w") as f:
             json.dump(self.metadata.to_dict(), f, indent=2)
+            f.write("\n")
 
     def _init_scratchpad(self) -> None:
         sp = self.root / "scratchpad.md"
