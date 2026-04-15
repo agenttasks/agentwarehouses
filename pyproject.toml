@@ -148,7 +148,11 @@ addopts = [
 
 [tool.coverage.run]
 source = ["agentwarehouses"]
-omit = ["*/settings.py"]
+omit = [
+    "*/settings.py",
+    "*/generation/*",
+    "*/spiders/neon_docs_spider.py",
+]
 
 [tool.coverage.report]
 fail_under = 90
