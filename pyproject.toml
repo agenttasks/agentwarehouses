@@ -65,6 +65,13 @@ mcp = [
     "claude-code-sdk>=0.0.25,<1.0",
 ]
 
+# ── Multi-agent research system (Claude Agent SDK) ───────
+research = [
+    "claude-code-sdk>=0.0.25,<1.0",
+    "reportlab>=4.0,<5.0",
+    "matplotlib>=3.8,<4.0",
+]
+
 # ── Social distribution SDKs (TikTok Business API) ───────
 social = [
     "tiktok-business-api-sdk>=1.0,<2.0",
@@ -93,6 +100,9 @@ release-type = "python"
 package-name = "agentwarehouses"
 bump-minor-pre-major = true
 
+[project.scripts]
+research-agent = "agentwarehouses.research_agent.agent:main"
+
 [project.entry-points."scrapy"]
 settings = "agentwarehouses.settings"
 
@@ -118,6 +128,7 @@ strict = true
 module = [
     "agentwarehouses.generation.*",
     "agentwarehouses.spiders.neon_docs_spider",
+    "agentwarehouses.research_agent.*",
 ]
 ignore_errors = true
 
@@ -128,6 +139,10 @@ module = [
     "google.*",
     "strawberry",
     "strawberry.*",
+    "claude_agent_sdk",
+    "claude_agent_sdk.*",
+    "reportlab",
+    "reportlab.*",
 ]
 ignore_missing_imports = true
 
@@ -152,6 +167,7 @@ omit = [
     "*/settings.py",
     "*/generation/*",
     "*/spiders/neon_docs_spider.py",
+    "*/research_agent/*",
 ]
 
 [tool.coverage.report]
