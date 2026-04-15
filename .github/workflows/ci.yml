@@ -25,6 +25,8 @@ jobs:
           python-version: "3.11"
       - run: make install-ci
       - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --show-diff-on-failure --all-files
         env:
           SKIP: mypy
       - name: mypy
