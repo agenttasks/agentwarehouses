@@ -413,3 +413,52 @@ class TestSpiderBackcompat:
         regex_desc = re.search(r'<meta\s+name="description"\s+content="([^"]+)"', text)
         parser_desc = MarkdownParser().parse(text).description
         assert parser_desc == regex_desc.group(1).strip()  # type: ignore[union-attr]
+
+
+# ── AST layer tests ──────────────────────────────────────────────────
+
+
+@pytest.mark.unit
+class TestDocumentAST:
+    """Verify the immutable AST intermediate representation."""
+
+    def test_ast_is_available(self) -> None:
+        result = MarkdownParser().parse(CLAUDE_CODE_DOC)
+        assert result.ast is not None
+
+    def test_ast_headings_are_tuples(self) -> None:
+        result = MarkdownParser().parse(CLAUDE_CODE_DOC)
+        assert isinstance(result.ast.headings, tuple)
+
+    def test_ast_paragraphs_are_tuples(self) -> None:
+        result = MarkdownParser().parse(CLAUDE_CODE_DOC)
+        assert isinstance(result.ast.paragraphs, tuple)
+
+    def test_ast_nodes_are_frozen(self) -> None:
+        result = MarkdownParser().parse(CLAUDE_CODE_DOC)
+        with pytest.raises(AttributeError):
+            result.ast.headings[0].text = "mutated"  # type: ignore[misc]
+
+    def test_ast_frontmatter_attached(self) -> None:
+        result = MarkdownParser().parse(FRONTMATTER_DOC)
+        assert result.ast is not None
+        assert result.ast.frontmatter["title"] == "Test Document"
+
+    def test_ast_sections_match_convenience(self) -> None:
+        result = MarkdownParser().parse(CLAUDE_CODE_DOC)
+        assert len(result.ast.sections) == len(result.sections)
+        for ast_s, conv_s in zip(result.ast.sections, result.sections):
+            assert ast_s.title == conv_s.title
+            assert ast_s.level == conv_s.level
+
+    def test_ast_blockquote_paragraphs_flagged(self) -> None:
+        result = MarkdownParser().parse(CLAUDE_CODE_DOC)
+        bq_paras = [p for p in result.ast.paragraphs if p.in_blockquote]
+        assert len(bq_paras) >= 1
+        assert bq_paras[0].text == "An agentic coding tool for your terminal"
+
+    def test_single_pass_produces_all_node_types(self) -> None:
+        result = MarkdownParser().parse(CODE_BLOCKS_DOC)
+        assert len(result.ast.headings) > 0
+        assert len(result.ast.paragraphs) > 0
+        assert len(result.ast.code_blocks) > 0
