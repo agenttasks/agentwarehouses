@@ -30,3 +30,7 @@ transformer-circuits.pub publishes interpretability research:
 ### [2026-04-15 18:52:25 UTC] ConventionalSessions Research
 
 Researched: conventional commits spec, parser, circuit-tracer, research-agent demo, Agent SDK Python + TS v2 preview. Evaluating conventionalsessions / conventionaltraces concept.
+
+### [2026-04-15 19:03:26 UTC] Context Compacted
+
+Session context was compacted. Prior work is summarized above.
