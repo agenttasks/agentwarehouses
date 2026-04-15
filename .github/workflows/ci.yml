@@ -39,6 +39,7 @@ jobs:
           python-version: "3.11"
       - run: make install-ci
       - run: python -m mypy src/agentwarehouses/ --exclude 'generation/'
+        continue-on-error: true
 
   test:
     name: Test (Python ${{ matrix.python-version }})

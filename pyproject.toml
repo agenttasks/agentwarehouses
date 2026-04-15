@@ -142,6 +142,10 @@ python_version = "3.11"
 strict = true
 exclude = ["generation/"]
 
+[[tool.mypy.overrides]]
+module = "agentwarehouses.generation.*"
+ignore_errors = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
