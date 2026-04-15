@@ -25,6 +25,10 @@ jobs:
           python-version: "3.11"
       - run: make install-ci
       - uses: pre-commit/action@v3.0.1
+        env:
+          SKIP: mypy
+      - name: mypy
+        run: python -m mypy src/agentwarehouses/
 
   test:
     name: Test (Python ${{ matrix.python-version }})
