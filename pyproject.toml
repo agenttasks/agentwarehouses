@@ -112,6 +112,7 @@ dev = [
     "pytest-benchmark>=5.1",
     "pydantic>=2.9,<4.0",
     "pre-commit>=4.0",
+    "types-PyYAML>=6.0",
 ]
 
 [tool.release-please]

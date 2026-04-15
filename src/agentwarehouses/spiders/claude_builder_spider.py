@@ -107,7 +107,7 @@ class ClaudeBuilderSpider(scrapy.Spider):
     name = "claude_builder"
     allowed_domains = ["builder.claude.ai"]
 
-    custom_settings: dict[str, Any] = {
+    custom_settings: dict[bool | float | int | str | None, Any] | None = {
         "CONCURRENT_REQUESTS": 16,
         "CONCURRENT_REQUESTS_PER_DOMAIN": 8,
         "DOWNLOAD_DELAY": 0.5,
@@ -140,7 +140,7 @@ class ClaudeBuilderSpider(scrapy.Spider):
         # Set UA per Anthropic's three-bot framework
         ua = BOT_USER_AGENTS.get(bot_role)
         if ua:
-            self.custom_settings = {**self.custom_settings, "USER_AGENT": ua}
+            self.custom_settings = {**(self.custom_settings or {}), "USER_AGENT": ua}
         else:
             self.logger.warning("Unknown bot_role '%s', using default UA", bot_role)
 
@@ -296,7 +296,11 @@ class ClaudeBuilderSpider(scrapy.Spider):
     def handle_error(self, failure: Failure) -> None:
         """Log errors without crashing the crawl."""
         self._stats["pages_failed"] += 1
-        self.logger.error("ERROR: %s fetching %s", failure.type.__name__, failure.request.url)
+        self.logger.error(
+            "ERROR: %s fetching %s",
+            failure.type.__name__,  # type: ignore[union-attr]
+            failure.request.url,  # type: ignore[attr-defined]
+        )
 
     def closed(self, reason: str) -> None:
         """Log crawl summary stats on spider close."""

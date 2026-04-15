@@ -205,7 +205,7 @@ class ClioPipeline:
         embeddings: dict[str, EmbeddingArray],
     ) -> dict[str, list[Cluster]]:
         """Create base-level clusters for each facet using k-means."""
-        from sklearn.cluster import KMeans
+        from sklearn.cluster import KMeans  # type: ignore[import-untyped]  # type: ignore[import-untyped]
 
         base_clusters: dict[str, list[Cluster]] = {}
         n_docs = len(doc_facets)
@@ -295,7 +295,7 @@ class ClioPipeline:
         cluster descriptions, name the parent categories, assign children,
         and rename parents based on actual children.
         """
-        from sklearn.cluster import KMeans
+        from sklearn.cluster import KMeans  # noqa: F811
 
         root_clusters: dict[str, list[Cluster]] = {}
 
@@ -416,7 +416,7 @@ class ClioPipeline:
     def _get_embedder(self) -> Any:
         """Lazy-load sentence-transformer model."""
         if self._embedder is None:
-            from sentence_transformers import SentenceTransformer
+            from sentence_transformers import SentenceTransformer  # type: ignore[import-not-found]
 
             self._embedder = SentenceTransformer(self.config.embedding_model)
             logger.info("Loaded embedding model: %s", self.config.embedding_model)
@@ -440,7 +440,7 @@ class ClioPipeline:
             temperature=self.config.temperature,
             messages=[{"role": "user", "content": prompt}],
         )
-        return response.content[0].text
+        return response.content[0].text  # type: ignore[no-any-return]
 
     def _format_samples(self, doc_facets: list[DocumentFacets], facet_name: str, indices: Any) -> str:
         """Format document samples for LLM prompts."""
