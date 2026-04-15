@@ -58,7 +58,8 @@
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pre-compact-save.sh",
-            "timeout": 10
+            "timeout": 10,
+            "statusMessage": "Saving session context before compaction..."
           }
         ]
       }
