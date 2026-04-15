@@ -1,0 +1,197 @@
+# Claude-UDA Star Schema — Federation-Ready GraphQL Projection
+#
+# Transpiled from domain_model.ttl following Netflix UDA conventions.
+# All types carry @udaUri directives mapping fields to the ontology.
+# Designed for Postgres 18 pg_graphql (which auto-generates this from DDL),
+# but also compatible with Apollo Federation via @key directives.
+
+directive @udaUri(uri: String!) on OBJECT | FIELD_DEFINITION | ENUM | ENUM_VALUE
+
+# ════════════════════════════════════════════════════════════════════
+# Enumerations (Controlled Vocabularies)
+# ════════════════════════════════════════════════════════════════════
+
+enum CLAUDE_PlanTier @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#PlanTier") {
+  FREE      @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#PlanTier_Free")
+  PRO       @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#PlanTier_Pro")
+  TEAM      @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#PlanTier_Team")
+  ENTERPRISE @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#PlanTier_Enterprise")
+  MAX       @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#PlanTier_Max")
+}
+
+enum CLAUDE_SurfaceType @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#SurfaceType") {
+  CLI            @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#SurfaceType_CLI")
+  VSCODE         @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#SurfaceType_VSCode")
+  JETBRAINS      @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#SurfaceType_JetBrains")
+  WEB            @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#SurfaceType_Web")
+  DESKTOP_MAC    @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#SurfaceType_DesktopMac")
+  DESKTOP_WINDOWS @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#SurfaceType_DesktopWindows")
+}
+
+enum CLAUDE_ModelFamily @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#ModelFamily") {
+  OPUS   @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#ModelFamily_Opus")
+  SONNET @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#ModelFamily_Sonnet")
+  HAIKU  @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#ModelFamily_Haiku")
+}
+
+enum CLAUDE_ToolCategory @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#ToolCategory") {
+  READ   @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#ToolCategory_Read")
+  WRITE  @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#ToolCategory_Write")
+  EDIT   @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#ToolCategory_Edit")
+  BASH   @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#ToolCategory_Bash")
+  SEARCH @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#ToolCategory_Search")
+  AGENT  @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#ToolCategory_Agent")
+  MCP    @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#ToolCategory_MCP")
+  OTHER  @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#ToolCategory_Other")
+}
+
+enum CLAUDE_MessageRole @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#MessageRole") {
+  USER      @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#MessageRole_User")
+  ASSISTANT @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#MessageRole_Assistant")
+  SYSTEM    @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#MessageRole_System")
+  TOOL      @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#MessageRole_Tool")
+}
+
+enum CLAUDE_SessionStatus @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#SessionStatus") {
+  ACTIVE    @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#SessionStatus_Active")
+  COMPLETED @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#SessionStatus_Completed")
+  ABANDONED @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#SessionStatus_Abandoned")
+  ERRORED   @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#SessionStatus_Errored")
+  COMPACTED @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#SessionStatus_Compacted")
+}
+
+enum CLAUDE_DeviceOS @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DeviceOS") {
+  MACOS    @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DeviceOS_MacOS")
+  LINUX    @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DeviceOS_Linux")
+  WINDOWS  @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DeviceOS_Windows")
+  CHROMEOS @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DeviceOS_ChromeOS")
+}
+
+# ════════════════════════════════════════════════════════════════════
+# Conformed Dimensions
+# ════════════════════════════════════════════════════════════════════
+
+type CLAUDE_DimUser @key(fields: "claude_user_key") @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimUser") {
+  claude_user_key: Int!       @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimUser_userKey")
+  claude_user_id: String!     @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimUser_userId")
+  claude_email: String!       @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimUser_email")
+  claude_plan_tier: CLAUDE_PlanTier! @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimUser_planTier")
+  claude_org_id: String       @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimUser_orgId")
+  claude_org_name: String     @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimUser_orgName")
+  claude_effective_from: DateTime! @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimUser_effectiveFrom")
+  claude_effective_to: DateTime @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimUser_effectiveTo")
+  claude_is_current: Boolean! @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimUser_isCurrent")
+}
+
+type CLAUDE_DimDevice @key(fields: "claude_device_key") @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimDevice") {
+  claude_device_key: Int!     @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimDevice_deviceKey")
+  claude_device_id: String!   @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimDevice_deviceId")
+  claude_os: CLAUDE_DeviceOS! @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimDevice_os")
+  claude_os_version: String!  @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimDevice_osVersion")
+  claude_arch: String!        @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimDevice_arch")
+  claude_cpu_cores: Int       @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimDevice_cpuCores")
+  claude_memory_gb: Float     @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimDevice_memoryGb")
+}
+
+type CLAUDE_DimUserSurface @key(fields: "claude_surface_key") @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimUserSurface") {
+  claude_surface_key: Int!            @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimUserSurface_surfaceKey")
+  claude_surface_type: CLAUDE_SurfaceType! @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimUserSurface_surfaceType")
+  claude_surface_version: String!     @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimUserSurface_surfaceVersion")
+  claude_extension_version: String    @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimUserSurface_extensionVersion")
+}
+
+type CLAUDE_DimModel @key(fields: "claude_model_key") @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimModel") {
+  claude_model_key: Int!              @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimModel_modelKey")
+  claude_model_id: String!            @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimModel_modelId")
+  claude_model_family: CLAUDE_ModelFamily! @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimModel_modelFamily")
+  claude_context_window: Int!         @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimModel_contextWindow")
+  claude_max_output_tokens: Int!      @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimModel_maxOutputTokens")
+  claude_supports_thinking: Boolean!  @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimModel_supportsThinking")
+}
+
+type CLAUDE_DimTime @key(fields: "claude_time_key") @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTime") {
+  claude_time_key: Int!       @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTime_timeKey")
+  claude_full_datetime: DateTime! @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTime_fullDatetime")
+  claude_date: String!        @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTime_date")
+  claude_year: Int!           @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTime_year")
+  claude_quarter: Int!        @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTime_quarter")
+  claude_month: Int!          @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTime_month")
+  claude_day: Int!            @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTime_day")
+  claude_hour: Int!           @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTime_hour")
+  claude_minute: Int!         @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTime_minute")
+  claude_day_of_week: String! @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTime_dayOfWeek")
+  claude_is_weekend: Boolean! @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTime_isWeekend")
+}
+
+type CLAUDE_DimTool @key(fields: "claude_tool_key") @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTool") {
+  claude_tool_key: Int!               @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTool_toolKey")
+  claude_tool_name: String!           @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTool_toolName")
+  claude_tool_category: CLAUDE_ToolCategory! @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTool_toolCategory")
+  claude_is_mcp: Boolean!             @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTool_isMcp")
+  claude_mcp_server_name: String      @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#DimTool_mcpServerName")
+}
+
+# ════════════════════════════════════════════════════════════════════
+# Fact Tables
+# ════════════════════════════════════════════════════════════════════
+
+type CLAUDE_FactSession @key(fields: "claude_session_key") @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactSession") {
+  claude_session_key: Int!            @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactSession_sessionKey")
+  claude_session_id: String!          @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactSession_sessionId")
+  claude_status: CLAUDE_SessionStatus! @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactSession_status")
+  claude_duration_seconds: Float!     @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactSession_durationSeconds")
+  claude_message_count: Int!          @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactSession_messageCount")
+  claude_tool_use_count: Int!         @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactSession_toolUseCount")
+  claude_token_input_count: Int!      @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactSession_tokenInputCount")
+  claude_token_output_count: Int!     @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactSession_tokenOutputCount")
+  claude_turn_count: Int!             @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactSession_turnCount")
+  claude_cost_usd: Float!             @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactSession_costUsd")
+
+  # Dimension relationships
+  claude_user: CLAUDE_DimUser!        @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactSession_userKey")
+  claude_device: CLAUDE_DimDevice!    @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactSession_deviceKey")
+  claude_surface: CLAUDE_DimUserSurface! @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactSession_surfaceKey")
+  claude_model: CLAUDE_DimModel!      @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactSession_modelKey")
+  claude_start_time: CLAUDE_DimTime!  @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactSession_startTimeKey")
+  claude_end_time: CLAUDE_DimTime     @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactSession_endTimeKey")
+}
+
+type CLAUDE_FactToolUse @key(fields: "claude_tool_use_key") @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse") {
+  claude_tool_use_key: Int!           @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_toolUseKey")
+  claude_duration_ms: Int!            @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_durationMs")
+  claude_input_tokens: Int!           @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_inputTokens")
+  claude_output_tokens: Int!          @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_outputTokens")
+  claude_is_cache_hit: Boolean!       @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_isCacheHit")
+  claude_was_approved: Boolean!       @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_wasApproved")
+  claude_error_occurred: Boolean!     @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_errorOccurred")
+
+  # Dimension relationships
+  claude_session: CLAUDE_FactSession! @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_sessionKey")
+  claude_user: CLAUDE_DimUser!        @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_userKey")
+  claude_tool: CLAUDE_DimTool!        @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_toolKey")
+  claude_model: CLAUDE_DimModel!      @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_modelKey")
+  claude_time: CLAUDE_DimTime!        @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_timeKey")
+}
+
+type CLAUDE_FactMessage @key(fields: "claude_message_key") @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactMessage") {
+  claude_message_key: Int!            @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_messageKey")
+  claude_role: CLAUDE_MessageRole!    @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_role")
+  claude_content_length: Int!         @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_contentLength")
+  claude_token_count: Int!            @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_tokenCount")
+  claude_has_tool_use: Boolean!       @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_hasToolUse")
+  claude_thinking_tokens: Int         @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_thinkingTokens")
+  claude_cache_creation_tokens: Int   @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_cacheCreationTokens")
+  claude_cache_read_tokens: Int       @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_cacheReadTokens")
+
+  # Dimension relationships
+  claude_session: CLAUDE_FactSession! @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_sessionKey")
+  claude_user: CLAUDE_DimUser!        @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_userKey")
+  claude_model: CLAUDE_DimModel!      @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_modelKey")
+  claude_time: CLAUDE_DimTime!        @udaUri(uri: "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_timeKey")
+}
+
+# ════════════════════════════════════════════════════════════════════
+# Scalar definitions (pg_graphql provides these natively)
+# ════════════════════════════════════════════════════════════════════
+
+scalar DateTime
