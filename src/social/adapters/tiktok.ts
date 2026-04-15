@@ -80,7 +80,7 @@ export class TikTokAdapter implements SocialAdapter {
         }),
       });
 
-      const initData: TikTokInitResponse = await initResponse.json();
+      const initData = (await initResponse.json()) as TikTokInitResponse;
 
       if (initData.error?.code !== "ok") {
         return failureResult("tiktok", `Init failed: ${initData.error.message}`);
@@ -116,7 +116,7 @@ export class TikTokAdapter implements SocialAdapter {
         body: JSON.stringify({ publish_id: publishId }),
       });
 
-      const statusData: TikTokStatusResponse = await statusResponse.json();
+      const statusData = (await statusResponse.json()) as TikTokStatusResponse;
 
       if (statusData.data.status === "PUBLISH_COMPLETE") {
         const videoId = statusData.data.video_id ?? publishId;

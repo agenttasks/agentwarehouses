@@ -103,3 +103,112 @@ CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = EnvVarDefinition(
     description="Enable experimental agent teams feature",
     category=EnvVarCategory.FEATURES,
 )
+
+# Cloud / headless environment variables (2.1.105+)
+
+CLAUDE_CODE_OAUTH_TOKEN = EnvVarDefinition(
+    name="CLAUDE_CODE_OAUTH_TOKEN",
+    type=EnvVarType.STRING,
+    description="OAuth access token for Claude.ai (preferred over API key in cloud/CI)",
+    category=EnvVarCategory.AUTHENTICATION,
+)
+
+CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = EnvVarDefinition(
+    name="CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
+    type=EnvVarType.BOOLEAN,
+    default="0",
+    description="Disable telemetry, surveys, auto-updates, and error reporting (scoping fixed in 2.1.105)",
+    category=EnvVarCategory.TELEMETRY,
+)
+
+DISABLE_AUTOUPDATER = EnvVarDefinition(
+    name="DISABLE_AUTOUPDATER",
+    type=EnvVarType.BOOLEAN,
+    default="0",
+    description="Disable automatic updates (set to 1 in containerized environments)",
+    category=EnvVarCategory.FEATURES,
+)
+
+CLAUDE_CODE_EXIT_AFTER_STOP_DELAY = EnvVarDefinition(
+    name="CLAUDE_CODE_EXIT_AFTER_STOP_DELAY",
+    type=EnvVarType.INTEGER,
+    description="Time in ms after idle before auto-exit (for serverless/container cleanup)",
+    category=EnvVarCategory.FEATURES,
+)
+
+CLAUDE_CODE_SYNC_PLUGIN_INSTALL = EnvVarDefinition(
+    name="CLAUDE_CODE_SYNC_PLUGIN_INSTALL",
+    type=EnvVarType.BOOLEAN,
+    default="0",
+    description="Wait for plugin installation in headless (-p) mode instead of async",
+    category=EnvVarCategory.PLUGINS,
+)
+
+CLAUDE_CODE_SYNC_PLUGIN_INSTALL_TIMEOUT_MS = EnvVarDefinition(
+    name="CLAUDE_CODE_SYNC_PLUGIN_INSTALL_TIMEOUT_MS",
+    type=EnvVarType.INTEGER,
+    default="60000",
+    description="Timeout in ms for synchronous plugin installation in headless mode",
+    category=EnvVarCategory.PLUGINS,
+)
+
+API_TIMEOUT_MS = EnvVarDefinition(
+    name="API_TIMEOUT_MS",
+    type=EnvVarType.INTEGER,
+    default="600000",
+    description="API request timeout in milliseconds (default 10 min)",
+    category=EnvVarCategory.NETWORK,
+)
+
+# Prompt caching env vars (2.1.108+)
+
+ENABLE_PROMPT_CACHING_1H = EnvVarDefinition(
+    name="ENABLE_PROMPT_CACHING_1H",
+    type=EnvVarType.BOOLEAN,
+    default="0",
+    description="Opt into 1-hour prompt cache TTL on API key, Bedrock, Vertex, and Foundry",
+    category=EnvVarCategory.FEATURES,
+)
+
+ENABLE_PROMPT_CACHING_1H_BEDROCK = EnvVarDefinition(
+    name="ENABLE_PROMPT_CACHING_1H_BEDROCK",
+    type=EnvVarType.BOOLEAN,
+    default="0",
+    description="Deprecated: use ENABLE_PROMPT_CACHING_1H instead. Still honored for Bedrock.",
+    category=EnvVarCategory.FEATURES,
+)
+
+FORCE_PROMPT_CACHING_5M = EnvVarDefinition(
+    name="FORCE_PROMPT_CACHING_5M",
+    type=EnvVarType.BOOLEAN,
+    default="0",
+    description="Force 5-minute prompt cache TTL",
+    category=EnvVarCategory.FEATURES,
+)
+
+DISABLE_PROMPT_CACHING = EnvVarDefinition(
+    name="DISABLE_PROMPT_CACHING",
+    type=EnvVarType.BOOLEAN,
+    default="0",
+    description="Disable prompt caching entirely (shows warning at startup when set)",
+    category=EnvVarCategory.FEATURES,
+)
+
+# Recap / away summary (2.1.108+)
+
+CLAUDE_CODE_ENABLE_AWAY_SUMMARY = EnvVarDefinition(
+    name="CLAUDE_CODE_ENABLE_AWAY_SUMMARY",
+    type=EnvVarType.BOOLEAN,
+    default="0",
+    description="Force recap/away-summary on session resume even when telemetry is disabled",
+    category=EnvVarCategory.FEATURES,
+)
+
+# Bash env file (2.1.108 fix)
+
+CLAUDE_ENV_FILE = EnvVarDefinition(
+    name="CLAUDE_ENV_FILE",
+    type=EnvVarType.STRING,
+    description="Path to env file loaded by Bash tool (e.g. ~/.zprofile)",
+    category=EnvVarCategory.BASH,
+)

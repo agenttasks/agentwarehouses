@@ -143,8 +143,8 @@ export const ExtractedGraph = z.object({
 // dimensional snapshot from a session, suitable for warehouse loading.
 
 import {
-  DimUser, DimDevice, DimUserSurface, DimModel, DimTime, DimTool,
-} from "./kimball_dimensions";
+  DimUser, DimDevice, DimUserSurface, DimModel, DimTime,
+} from "./kimball_dimensions.js";
 
 export const SessionStarSchema = z.object({
   // Inline dimensions (denormalized for single-call extraction)

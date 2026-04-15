@@ -45,7 +45,7 @@ export class VideoPipelineClient {
       );
     }
 
-    const result: GraphQLResponse<T> = await response.json();
+    const result = (await response.json()) as GraphQLResponse<T>;
 
     if (result.errors?.length) {
       throw new Error(

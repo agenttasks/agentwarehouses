@@ -28,14 +28,18 @@ from agentwarehouses.models import (
     OtelConfig,
     PermissionMode,
     PluginManifest,
+    PreCompactInput,
     ResultMessage,
     SemVer,
+    SessionCLIFlags,
     SessionInfo,
+    SettingSource,
     SkillEvalCase,
     SkillEvalSuite,
     SkillFrontmatter,
     TeamTask,
     TextBlock,
+    ThinkingBlock,
     ToolCategory,
     ToolDefinition,
     ToolName,
@@ -147,6 +151,25 @@ class TestHookModels:
         )
         assert "PostToolUse" in hc.hooks
 
+    def test_pre_compact_input(self):
+        pci = PreCompactInput(
+            session_id="s1",
+            transcript_path="/tmp/t.json",
+            cwd="/home/user",
+            hook_event_name="PreCompact",
+        )
+        assert pci.hook_event_name == "PreCompact"
+        assert pci.summary is None
+
+    def test_pre_compact_input_with_summary(self):
+        pci = PreCompactInput(
+            session_id="s1",
+            transcript_path="/tmp/t.json",
+            cwd="/home/user",
+            summary="Context about to be compacted",
+        )
+        assert pci.summary == "Context about to be compacted"
+
 
 class TestSubagentModels:
     def test_agent_frontmatter(self):
@@ -181,6 +204,15 @@ class TestSkillModels:
     def test_skill_frontmatter(self):
         sf = SkillFrontmatter(name="my-skill", description="Does something useful")
         assert sf.name == "my-skill"
+
+    def test_skill_description_max_length_1536(self):
+        long_desc = "a" * 1536
+        sf = SkillFrontmatter(name="long-desc", description=long_desc)
+        assert len(sf.description) == 1536
+
+    def test_skill_description_exceeds_1536(self):
+        with pytest.raises(ValidationError):
+            SkillFrontmatter(name="too-long", description="a" * 1537)
 
     def test_skill_name_validation(self):
         with pytest.raises(ValidationError):
@@ -222,17 +254,34 @@ class TestPluginModels:
         pm = PluginManifest(name="my-plugin", version="1.0.0", description="A test plugin")
         assert pm.name == "my-plugin"
 
+    def test_plugin_manifest_with_monitors(self):
+        pm = PluginManifest(name="my-plugin", version="1.0.0", monitors=["health-check"])
+        assert pm.monitors == ["health-check"]
+
+    def test_plugin_manifest_monitors_dict(self):
+        pm = PluginManifest(name="my-plugin", monitors={"check": {"interval": 60}})
+        assert isinstance(pm.monitors, dict)
+
     def test_plugin_manifest_serialization(self):
         pm = PluginManifest(name="test", version="1.0.0")
         data = pm.model_dump(exclude_none=True)
         assert data["name"] == "test"
         assert "description" not in data
+        assert "monitors" not in data
 
 
 class TestSessionModels:
     def test_session_info(self):
         si = SessionInfo(session_id="abc123", summary="Test session", last_modified=1234567890)
         assert si.session_id == "abc123"
+
+    def test_session_cli_flags_recap(self):
+        flags = SessionCLIFlags(recap=True)
+        assert flags.recap is True
+
+    def test_session_cli_flags_recap_default(self):
+        flags = SessionCLIFlags()
+        assert flags.recap is None
 
 
 class TestOtelModels:
@@ -272,6 +321,14 @@ class TestSdkModels:
         )
         assert rm.total_cost_usd == 0.05
 
+    def test_thinking_block_progress_hint(self):
+        tb = ThinkingBlock(thinking="reasoning...", signature="sig123", progress_hint="Analyzing code")
+        assert tb.progress_hint == "Analyzing code"
+
+    def test_thinking_block_no_hint(self):
+        tb = ThinkingBlock(thinking="reasoning...", signature="sig123")
+        assert tb.progress_hint is None
+
 
 class TestPermissionModels:
     def test_permission_mode_enum(self):
@@ -308,6 +365,28 @@ class TestCommandModels:
         cd = CommandDefinition(name="/clear", description="Clear conversation", command_type="built_in")
         assert cd.name == "/clear"
 
+    def test_recap_command(self):
+        from agentwarehouses.models.commands import CMD_RECAP
+
+        assert CMD_RECAP.name == "/recap"
+        assert CMD_RECAP.command_type == "built_in"
+
+    def test_undo_command(self):
+        from agentwarehouses.models.commands import CMD_UNDO
+
+        assert CMD_UNDO.name == "/undo"
+        assert "/rewind" in CMD_UNDO.aliases
+
+
+class TestSettingSource:
+    def test_managed_source(self):
+        assert SettingSource.MANAGED.value == "managed"
+
+    def test_all_sources(self):
+        assert len(SettingSource) == 4
+        sources = {s.value for s in SettingSource}
+        assert sources == {"user", "project", "local", "managed"}
+
 
 class TestEnvVarModels:
     def test_env_var_definition(self):
@@ -318,3 +397,39 @@ class TestEnvVarModels:
             category=EnvVarCategory.AUTHENTICATION,
         )
         assert ev.name == "ANTHROPIC_API_KEY"
+
+    def test_cloud_env_vars_exist(self):
+        from agentwarehouses.models.env_vars import (
+            API_TIMEOUT_MS,
+            CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC,
+            CLAUDE_CODE_EXIT_AFTER_STOP_DELAY,
+            CLAUDE_CODE_OAUTH_TOKEN,
+            CLAUDE_CODE_SYNC_PLUGIN_INSTALL,
+            DISABLE_AUTOUPDATER,
+        )
+
+        assert CLAUDE_CODE_OAUTH_TOKEN.category == EnvVarCategory.AUTHENTICATION
+        assert CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC.category == EnvVarCategory.TELEMETRY
+        assert DISABLE_AUTOUPDATER.category == EnvVarCategory.FEATURES
+        assert CLAUDE_CODE_EXIT_AFTER_STOP_DELAY.category == EnvVarCategory.FEATURES
+        assert CLAUDE_CODE_SYNC_PLUGIN_INSTALL.category == EnvVarCategory.PLUGINS
+        assert API_TIMEOUT_MS.category == EnvVarCategory.NETWORK
+        assert API_TIMEOUT_MS.default == "600000"
+
+    def test_prompt_caching_env_vars_exist(self):
+        from agentwarehouses.models.env_vars import (
+            CLAUDE_CODE_ENABLE_AWAY_SUMMARY,
+            CLAUDE_ENV_FILE,
+            DISABLE_PROMPT_CACHING,
+            ENABLE_PROMPT_CACHING_1H,
+            ENABLE_PROMPT_CACHING_1H_BEDROCK,
+            FORCE_PROMPT_CACHING_5M,
+        )
+
+        assert ENABLE_PROMPT_CACHING_1H.category == EnvVarCategory.FEATURES
+        assert ENABLE_PROMPT_CACHING_1H_BEDROCK.category == EnvVarCategory.FEATURES
+        assert "Deprecated" in ENABLE_PROMPT_CACHING_1H_BEDROCK.description
+        assert FORCE_PROMPT_CACHING_5M.category == EnvVarCategory.FEATURES
+        assert DISABLE_PROMPT_CACHING.category == EnvVarCategory.FEATURES
+        assert CLAUDE_CODE_ENABLE_AWAY_SUMMARY.category == EnvVarCategory.FEATURES
+        assert CLAUDE_ENV_FILE.category == EnvVarCategory.BASH

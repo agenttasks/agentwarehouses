@@ -20,6 +20,7 @@ class SettingSource(str, Enum):
     USER = "user"
     PROJECT = "project"
     LOCAL = "local"
+    MANAGED = "managed"
 
 
 class ThinkingConfigAdaptive(BaseModel):
@@ -83,6 +84,7 @@ class ThinkingBlock(BaseModel):
     type: Literal["thinking"] = "thinking"
     thinking: str
     signature: str
+    progress_hint: str | None = None
 
 
 class ToolUseBlock(BaseModel):

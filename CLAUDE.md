@@ -23,7 +23,7 @@ pytest tests/                   # test
 
 ## Conventions
 
-- BOT_NAME is `Claudebot`, USER_AGENT identifies as `Claudebot/2.1.104`
+- BOT_NAME is `Claudebot`, USER_AGENT identifies as `Claudebot/2.1.109`
 - Always obey robots.txt (`ROBOTSTXT_OBEY = True`)
 - Use absolute file paths in all tool calls and configs
 - Keep test output minimal — log verbose data to files, use grep-friendly `ERROR:` lines

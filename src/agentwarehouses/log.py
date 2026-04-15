@@ -19,12 +19,12 @@ import colorlog
 # Match Scrapy's LOG_LEVEL from settings.py, overridable via env
 _DEFAULT_LEVEL = os.environ.get("SCRAPY_LOG_LEVEL", "INFO").upper()
 
-# OTEL-aware resource attributes (Claude Code 2.1.104 telemetry)
+# OTEL-aware resource attributes (Claude Code 2.1.109 telemetry)
 OTEL_RESOURCE_ATTRS = {
     "service.name": "agentwarehouses",
     "service.version": "0.1.0",
     "bot.name": "Claudebot",
-    "bot.version": "2.1.104",
+    "bot.version": "2.1.109",
 }
 
 # Color scheme: severity -> color
@@ -89,7 +89,7 @@ def get_logger(name: str, level: str | None = None) -> logging.Logger:
 
 
 def get_otel_config() -> dict[str, Any]:
-    """Return OTEL environment configuration for Claude Code 2.1.104 telemetry.
+    """Return OTEL environment configuration for Claude Code 2.1.109 telemetry.
 
     These settings mirror the Claude Code monitoring docs and can be
     set as environment variables or passed to an OTEL collector config.
@@ -130,7 +130,7 @@ def get_otel_config() -> dict[str, Any]:
     }
 
 
-# Available Claude Code 2.1.104 OTEL metrics for reference
+# Available Claude Code 2.1.109 OTEL metrics for reference
 CLAUDE_CODE_METRICS = {
     "claude_code.session.count": "Count of CLI sessions started",
     "claude_code.lines_of_code.count": "Lines of code modified (type: added|removed)",
@@ -142,7 +142,7 @@ CLAUDE_CODE_METRICS = {
     "claude_code.active_time.total": "Active time in seconds (type: user|cli)",
 }
 
-# Available Claude Code 2.1.104 OTEL events for reference
+# Available Claude Code 2.1.109 OTEL events for reference
 CLAUDE_CODE_EVENTS = {
     "claude_code.user_prompt": "User submits a prompt (prompt_length, prompt.id)",
     "claude_code.tool_result": "Tool completes (tool_name, success, duration_ms, tool_result_size_bytes)",

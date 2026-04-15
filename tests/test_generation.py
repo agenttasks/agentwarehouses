@@ -1,6 +1,7 @@
 """Tests for the generation pipeline — Claude prompts, Veo client, GraphQL server.
 
 Uses unittest.mock to avoid real API calls to Anthropic and Google.
+Skipped when generation extras are not installed (CI installs dev+models+warehouse only).
 """
 
 from __future__ import annotations
@@ -8,6 +9,10 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+# Skip entire module when generation deps (anthropic, google-genai, strawberry) aren't installed
+pytest.importorskip("anthropic", reason="generation extras not installed")
+pytest.importorskip("google.genai", reason="generation extras not installed")
 
 from agentwarehouses.models.video import (
     CinematicPromptRequest,

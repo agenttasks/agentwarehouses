@@ -4,7 +4,7 @@ SPIDER_MODULES = ["agentwarehouses.spiders"]
 NEWSPIDER_MODULE = "agentwarehouses.spiders"
 
 # Crawl responsibly by identifying ourselves
-USER_AGENT = "Claudebot/2.1.104 (+https://code.claude.com/docs)"
+USER_AGENT = "Claudebot/2.1.109 (+https://code.claude.com/docs)"
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
@@ -58,6 +58,6 @@ LOG_LEVEL = "INFO"
 LOG_FORMAT = "%(asctime)s [%(name)s] %(levelname)s: %(message)s"
 LOG_DATEFORMAT = "%Y-%m-%d %H:%M:%S"
 
-# OTEL telemetry (Claude Code 2.1.104 compatible)
+# OTEL telemetry (Claude Code 2.1.109 compatible)
 # Set CLAUDE_CODE_ENABLE_TELEMETRY=1 to activate
 # See agentwarehouses.log.get_otel_config() for full config reference

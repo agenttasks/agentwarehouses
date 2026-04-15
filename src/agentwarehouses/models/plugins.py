@@ -44,6 +44,7 @@ class PluginManifest(BaseModel):
     output_styles: str | list[str] | None = Field(None, alias="outputStyles")
     lsp_servers: str | list[str] | dict[str, Any] | None = Field(None, alias="lspServers")
     user_config: dict[str, UserConfigField] | None = Field(None, alias="userConfig")
+    monitors: str | list[str] | dict[str, Any] | None = None
     channels: list[ChannelDeclaration] | None = None
 
 

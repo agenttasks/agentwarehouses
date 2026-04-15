@@ -44,3 +44,4 @@ class SessionCLIFlags(BaseModel):
     teleport: bool | None = None
     remote: str | None = None
     name: str | None = Field(None, description="-n <name>")
+    recap: bool | None = Field(None, description="Show recap on resume (2.1.108+)")
