@@ -31,3 +31,6 @@ src/social/__generated__/
 # LSP
 .jdtls/
 .lsp-data/
+
+# Sessions (generated data, keep templates only)
+sessions/session_*/
