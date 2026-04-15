@@ -43,6 +43,7 @@ from scrapy.http import Response
 from twisted.python.failure import Failure
 
 from agentwarehouses.items import DocPageItem
+from agentwarehouses.markdown import MarkdownParser
 
 # llms.txt link pattern: - [Title](URL): description
 LLMS_ENTRY_RE = re.compile(r"- \[([^\]]+)\]\(([^)]+)\)(?::\s*(.+))?")
@@ -159,6 +160,7 @@ class ClaudeBuilderSpider(scrapy.Spider):
             "tutorials_found": 0,
             "kairos_found": 0,
         }
+        self._parser = MarkdownParser()
 
     def start_requests(self) -> Generator[scrapy.Request, None, None]:
         """Yield requests for each active discovery source."""
@@ -252,15 +254,13 @@ class ClaudeBuilderSpider(scrapy.Spider):
 
         self._stats["pages_fetched"] += 1
 
-        title = self._extract_title(text)
-        description = self._extract_description(text)
-        headings = self._extract_headings(text)
+        parsed = self._parser.parse(text)
 
         item = DocPageItem()
         item["url"] = response.url
-        item["title"] = title
-        item["description"] = description
-        item["headings"] = headings
+        item["title"] = parsed.title
+        item["description"] = parsed.description
+        item["headings"] = parsed.headings_as_dicts()
         item["body_markdown"] = text
         item["content_length"] = len(text)
         item["crawled_at"] = datetime.now(timezone.utc).isoformat()
@@ -327,25 +327,14 @@ class ClaudeBuilderSpider(scrapy.Spider):
     @staticmethod
     def _extract_title(text: str) -> str:
         """Extract title from first H1 heading or HTML title tag."""
-        match = re.search(r"^#\s+(.+)$", text, re.MULTILINE)
-        if match:
-            return match.group(1).strip()
-        match = re.search(r"<title>([^<]+)</title>", text)
-        return match.group(1).strip() if match else ""
+        return MarkdownParser().parse(text).title
 
     @staticmethod
     def _extract_description(text: str) -> str:
         """Extract description from first blockquote or meta description."""
-        match = re.search(r"^>\s*(.+)$", text, re.MULTILINE)
-        if match:
-            return match.group(1).strip()
-        match = re.search(r'<meta\s+name="description"\s+content="([^"]+)"', text)
-        return match.group(1).strip() if match else ""
+        return MarkdownParser().parse(text).description
 
     @staticmethod
     def _extract_headings(text: str) -> list[dict[str, Any]]:
         """Extract all headings as a list of (level, text) for structure analysis."""
-        return [
-            {"level": len(m.group(1)), "text": m.group(2).strip()}
-            for m in re.finditer(r"^(#{1,6})\s+(.+)$", text, re.MULTILINE)
-        ]
+        return MarkdownParser().parse(text).headings_as_dicts()
