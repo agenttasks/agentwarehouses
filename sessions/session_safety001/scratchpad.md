@@ -26,3 +26,7 @@ transformer-circuits.pub publishes interpretability research:
 - 2023: Towards Monosemanticity, Superposition + Double Descent
 - 2022: Toy Models of Superposition, Induction Heads
 - 2021: Mathematical Framework for Transformer Circuits
+
+### [2026-04-15 18:52:25 UTC] ConventionalSessions Research
+
+Researched: conventional commits spec, parser, circuit-tracer, research-agent demo, Agent SDK Python + TS v2 preview. Evaluating conventionalsessions / conventionaltraces concept.
