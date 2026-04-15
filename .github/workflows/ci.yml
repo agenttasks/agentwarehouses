@@ -27,8 +27,6 @@ jobs:
       - uses: pre-commit/action@v3.0.1
         with:
           extra_args: --show-diff-on-failure --all-files
-        env:
-          SKIP: mypy
       - name: mypy
         run: python -m mypy src/agentwarehouses/ --exclude 'generation/'
 
