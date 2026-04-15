@@ -11,7 +11,7 @@
  */
 
 import { z } from "zod";
-import { SessionStatus, MessageRole } from "./kimball_dimensions";
+import { SessionStatus, MessageRole } from "./kimball_dimensions.js";
 
 // ════════════════════════════════════════════════════════════════════
 // FactSession — grain: one row per session

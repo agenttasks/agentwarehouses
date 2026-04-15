@@ -24,8 +24,6 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import httpx
-import orjson
-import pyarrow.parquet as pq
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
@@ -211,7 +209,6 @@ def sync_dataset(dataset_cfg: dict[str, Any], neon: NeonConfig) -> int:
 
     if parquet_files:
         for pf in parquet_files:
-            file_url = pf["url"]
             log.info("  Downloading parquet: %s (%s bytes)", pf.get("filename", "?"), pf.get("size", "?"))
             # In production: download parquet, read with pyarrow, COPY into Postgres
             # For now, log the plan
