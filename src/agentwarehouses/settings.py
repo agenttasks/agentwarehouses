@@ -1,10 +1,18 @@
-BOT_NAME = "Claudebot"
+BOT_NAME = "ClaudeBot"
 
 SPIDER_MODULES = ["agentwarehouses.spiders"]
 NEWSPIDER_MODULE = "agentwarehouses.spiders"
 
-# Crawl responsibly by identifying ourselves
-USER_AGENT = "Claudebot/2.1.104 (+https://code.claude.com/docs)"
+# Crawl responsibly — match Anthropic's three-bot framework:
+#   ClaudeBot     — training data collection (default)
+#   Claude-User   — per-request user-initiated fetches
+#   Claude-SearchBot — search index crawling
+# Ref: https://support.claude.com/en/articles/8896518
+# Ref: https://claude.com/crawling/bots.json
+USER_AGENT = (
+    "Mozilla/5.0 AppleWebKit/537.36 "
+    "(KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)"
+)
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True

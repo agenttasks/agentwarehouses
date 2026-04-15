@@ -1,17 +1,33 @@
-"""Claude Builder docs spider — crawls documentation for Anthropic's full-stack app builder.
+"""Claude Builder docs spider — crawls Anthropic's full-stack app builder documentation.
 
-Discovers Claude Builder documentation pages from multiple sources:
-  1. builder.claude.ai/docs/llms.txt  — AI-curated doc index
-  2. builder.claude.ai/sitemap.xml    — full doc sitemap
+Models Anthropic's three-bot crawling framework (Mythos system card, FMTI 2025):
+  - ClaudeBot      — training data collection (this spider's role)
+  - Claude-User    — per-request user-initiated fetches
+  - Claude-SearchBot — search index crawling
 
-Claude Builder is Anthropic's no-code application builder (research preview),
-evolving Artifacts into a full-stack development environment with IDE, back-end
-logic, security scanning, and KAIROS autonomous agent integration.
+Training data pipeline (per Anthropic transparency report):
+  1. Discovery     — llms.txt + sitemap sources
+  2. Collection    — fetch candidate pages (ClaudeBot UA)
+  3. Deduplication — rbloom Bloom filter (content_hash + URL)
+  4. Classification — categorize by content type from URL path
+  5. Serialization — JSONL output for downstream filtering
+
+Data sources follow the Mythos composition model:
+  - Public web content (this spider)
+  - Licensed third-party data (not crawled)
+  - Opted-in user data (not crawled)
+  - Contractor annotations (not crawled)
+  - Synthetic data (not crawled)
+
+Ref: https://support.claude.com/en/articles/8896518
+Ref: https://claude.com/crawling/bots.json
+Ref: https://crfm.stanford.edu/fmti/December-2025/company-reports/Anthropic_FinalReport_FMTI2025.html
 
 Usage:
     scrapy crawl claude_builder
     scrapy crawl claude_builder -a max_pages=50
     scrapy crawl claude_builder -a sources=llms,sitemap
+    scrapy crawl claude_builder -a bot_role=training
 """
 from __future__ import annotations
 
@@ -34,21 +50,50 @@ LLMS_ENTRY_RE = re.compile(r"- \[([^\]]+)\]\(([^)]+)\)(?::\s*(.+))?")
 # Sitemap <loc> extraction
 SITEMAP_LOC_RE = re.compile(r"<loc>([^<]+)</loc>")
 
-# Valid Builder doc paths
-BUILDER_DOC_RE = re.compile(
-    r"^https://builder\.claude\.ai/(?:docs|guides|api|tutorials|security|deployment|kairos)/"
-)
-
 # Language filter: skip non-English docs
 LANG_FILTER_RE = re.compile(r"/(?:ja|de|fr|ko|zh|pt|es)(?:-[a-z]{2})?/")
 
+# Anthropic's three-bot framework user agents
+# Ref: https://support.claude.com/en/articles/8896518
+BOT_USER_AGENTS: dict[str, str] = {
+    "training": (
+        "Mozilla/5.0 AppleWebKit/537.36 "
+        "(KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)"
+    ),
+    "user": (
+        "Mozilla/5.0 AppleWebKit/537.36 "
+        "(KHTML, like Gecko; compatible; Claude-User/1.0; +claudebot@anthropic.com)"
+    ),
+    "search": (
+        "Mozilla/5.0 AppleWebKit/537.36 "
+        "(KHTML, like Gecko; compatible; Claude-SearchBot/1.0; +claudebot@anthropic.com)"
+    ),
+}
+
+# Content-type classification from URL paths — models the "deduplication and
+# classification" stage described in Anthropic's FMTI 2025 transparency report
+CONTENT_TYPE_PATTERNS: list[tuple[str, str]] = [
+    ("/tutorials/", "tutorial"),
+    ("/kairos/", "kairos"),
+    ("/api/", "api_reference"),
+    ("/security/", "security"),
+    ("/deployment/", "deployment"),
+    ("/guides/", "builder_guide"),
+]
+
 
 class ClaudeBuilderSpider(scrapy.Spider):
-    """Multi-source Claude Builder documentation crawler with rbloom dedup.
+    """Multi-source Claude Builder documentation crawler using Anthropic's ClaudeBot framework.
 
-    Crawls llms.txt and sitemap sources to index Claude Builder's full-stack
-    app builder documentation. Deduplicates URLs across all sources using a
-    Bloom filter (2,000 capacity, 0.01% FP).
+    Models the training data collection pipeline described in Anthropic's
+    Mythos system card and FMTI 2025 transparency report. Collects public
+    web content as "potential future training candidates" — content is
+    fetched, deduplicated, classified, and serialized for downstream filtering.
+
+    Three-bot roles (selectable via -a bot_role=):
+      training (default) — ClaudeBot UA, collects training data candidates
+      user               — Claude-User UA, fetches for user requests
+      search             — Claude-SearchBot UA, indexes for search quality
 
     Content types classified from URL paths:
       - builder_guide: General builder documentation
@@ -84,18 +129,31 @@ class ClaudeBuilderSpider(scrapy.Spider):
         self,
         max_pages: int = 0,
         sources: str = "llms,sitemap",
+        bot_role: str = "training",
         *args: Any,
         **kwargs: Any,
     ) -> None:
         super().__init__(*args, **kwargs)
         self.max_pages = int(max_pages)  # 0 = unlimited
         self.active_sources = [s.strip() for s in sources.split(",")]
+        self.bot_role = bot_role
+
+        # Set UA per Anthropic's three-bot framework
+        ua = BOT_USER_AGENTS.get(bot_role)
+        if ua:
+            self.custom_settings = {**self.custom_settings, "USER_AGENT": ua}
+        else:
+            self.logger.warning("Unknown bot_role '%s', using default UA", bot_role)
+
         # Bloom filter: 2K capacity, 0.01% FP rate (~35 KiB memory)
         self.seen: Bloom = Bloom(2000, 0.0001)
+        # Content hash dedup — mirrors Anthropic's "deduplication" stage
+        self.seen_hashes: Bloom = Bloom(2000, 0.0001)
         self._stats: dict[str, int] = {
             "discovery_urls": 0,
             "pages_fetched": 0,
             "pages_skipped_dedup": 0,
+            "pages_skipped_content_dedup": 0,
             "pages_skipped_lang": 0,
             "pages_failed": 0,
             "tutorials_found": 0,
@@ -109,7 +167,9 @@ class ClaudeBuilderSpider(scrapy.Spider):
             if not url:
                 self.logger.warning("Unknown source: %s", source_name)
                 continue
-            self.logger.info("Starting discovery from: %s (%s)", source_name, url)
+            self.logger.info(
+                "Starting discovery from: %s (%s) role=%s", source_name, url, self.bot_role
+            )
             if source_name == "sitemap":
                 yield scrapy.Request(
                     url,
@@ -170,13 +230,27 @@ class ClaudeBuilderSpider(scrapy.Spider):
         source: str,
         content_type: str,
     ) -> Generator[DocPageItem, None, None]:
-        """Extract content from a fetched documentation page."""
+        """Extract content from a fetched documentation page.
+
+        Implements the collection → dedup → classification pipeline:
+        1. Fetch page content
+        2. SHA256 content hash for cross-URL dedup (same content, different URL)
+        3. Classify content type (already done at discovery)
+        4. Yield item for downstream serialization
+        """
         if self.max_pages and self._stats["pages_fetched"] >= self.max_pages:
             return
 
-        self._stats["pages_fetched"] += 1
         text: str = response.text
         content_hash = hashlib.sha256(text.encode()).hexdigest()
+
+        # Content-level dedup: skip if identical content seen at different URL
+        if content_hash in self.seen_hashes:
+            self._stats["pages_skipped_content_dedup"] += 1
+            return
+        self.seen_hashes.add(content_hash)
+
+        self._stats["pages_fetched"] += 1
 
         title = self._extract_title(text)
         description = self._extract_description(text)
@@ -197,21 +271,18 @@ class ClaudeBuilderSpider(scrapy.Spider):
         yield item
 
     def _classify_url(self, url: str) -> str:
-        """Classify content type from URL path."""
-        if "/tutorials/" in url:
-            self._stats["tutorials_found"] += 1
-            return "tutorial"
-        if "/kairos/" in url:
-            self._stats["kairos_found"] += 1
-            return "kairos"
-        if "/api/" in url:
-            return "api_reference"
-        if "/security/" in url:
-            return "security"
-        if "/deployment/" in url:
-            return "deployment"
-        if "/guides/" in url:
-            return "builder_guide"
+        """Classify content type from URL path.
+
+        Models the "classification" stage of Anthropic's data pipeline
+        (FMTI 2025 transparency report: "deduplication and classification").
+        """
+        for pattern, ctype in CONTENT_TYPE_PATTERNS:
+            if pattern in url:
+                if ctype == "tutorial":
+                    self._stats["tutorials_found"] += 1
+                elif ctype == "kairos":
+                    self._stats["kairos_found"] += 1
+                return ctype
         return "page"
 
     def _should_crawl(self, url: str) -> bool:
@@ -223,7 +294,7 @@ class ClaudeBuilderSpider(scrapy.Spider):
         # Max pages guard
         if self.max_pages and self._stats["pages_fetched"] >= self.max_pages:
             return False
-        # Bloom dedup
+        # URL-level bloom dedup
         if url in self.seen:
             self._stats["pages_skipped_dedup"] += 1
             return False
@@ -238,11 +309,14 @@ class ClaudeBuilderSpider(scrapy.Spider):
     def closed(self, reason: str) -> None:
         """Log crawl summary stats on spider close."""
         self.logger.info(
-            "Crawl complete: discovered=%d fetched=%d dedup_skipped=%d "
-            "lang_skipped=%d failed=%d tutorials=%d kairos=%d reason=%s",
+            "Crawl complete: role=%s discovered=%d fetched=%d "
+            "url_dedup=%d content_dedup=%d lang_skipped=%d "
+            "failed=%d tutorials=%d kairos=%d reason=%s",
+            self.bot_role,
             self._stats["discovery_urls"],
             self._stats["pages_fetched"],
             self._stats["pages_skipped_dedup"],
+            self._stats["pages_skipped_content_dedup"],
             self._stats["pages_skipped_lang"],
             self._stats["pages_failed"],
             self._stats["tutorials_found"],

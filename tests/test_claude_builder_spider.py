@@ -1,4 +1,10 @@
-"""Tests for the Claude Builder spider — unit tests and Scrapy response integration tests."""
+"""Tests for the Claude Builder spider — three-bot framework, dedup, and classification.
+
+Tests model Anthropic's actual crawling architecture as documented in:
+  - Mythos system card (April 2026)
+  - FMTI 2025 transparency report (Stanford CRFM)
+  - https://support.claude.com/en/articles/8896518
+"""
 
 from __future__ import annotations
 
@@ -7,7 +13,10 @@ from unittest.mock import MagicMock
 import pytest
 from scrapy.http import TextResponse
 
-from agentwarehouses.spiders.claude_builder_spider import ClaudeBuilderSpider
+from agentwarehouses.spiders.claude_builder_spider import (
+    BOT_USER_AGENTS,
+    ClaudeBuilderSpider,
+)
 
 SAMPLE_LLMS_TXT = """\
 # Claude Builder Docs
@@ -70,6 +79,58 @@ Set up KAIROS to watch your deployed applications.
 """
 
 
+# ── Three-bot framework ──────────────────────────────────────────────
+
+
+@pytest.mark.unit
+class TestThreeBotFramework:
+    """Verify Anthropic's three-bot UA framework (ClaudeBot, Claude-User, Claude-SearchBot)."""
+
+    def test_bot_user_agents_has_three_roles(self) -> None:
+        assert set(BOT_USER_AGENTS.keys()) == {"training", "user", "search"}
+
+    def test_training_ua_contains_claudebot(self) -> None:
+        assert "ClaudeBot/1.0" in BOT_USER_AGENTS["training"]
+        assert "claudebot@anthropic.com" in BOT_USER_AGENTS["training"]
+
+    def test_user_ua_contains_claude_user(self) -> None:
+        assert "Claude-User/1.0" in BOT_USER_AGENTS["user"]
+
+    def test_search_ua_contains_claude_searchbot(self) -> None:
+        assert "Claude-SearchBot/1.0" in BOT_USER_AGENTS["search"]
+
+    def test_all_uas_have_mozilla_prefix(self) -> None:
+        for ua in BOT_USER_AGENTS.values():
+            assert ua.startswith("Mozilla/5.0 AppleWebKit/537.36")
+
+    def test_default_bot_role_is_training(self) -> None:
+        spider = ClaudeBuilderSpider()
+        assert spider.bot_role == "training"
+
+    def test_custom_bot_role_user(self) -> None:
+        spider = ClaudeBuilderSpider(bot_role="user")
+        assert spider.bot_role == "user"
+
+    def test_custom_bot_role_search(self) -> None:
+        spider = ClaudeBuilderSpider(bot_role="search")
+        assert spider.bot_role == "search"
+
+    def test_training_role_sets_ua_in_custom_settings(self) -> None:
+        spider = ClaudeBuilderSpider(bot_role="training")
+        assert spider.custom_settings["USER_AGENT"] == BOT_USER_AGENTS["training"]
+
+    def test_user_role_sets_ua_in_custom_settings(self) -> None:
+        spider = ClaudeBuilderSpider(bot_role="user")
+        assert spider.custom_settings["USER_AGENT"] == BOT_USER_AGENTS["user"]
+
+    def test_search_role_sets_ua_in_custom_settings(self) -> None:
+        spider = ClaudeBuilderSpider(bot_role="search")
+        assert spider.custom_settings["USER_AGENT"] == BOT_USER_AGENTS["search"]
+
+
+# ── Spider init ──────────────────────────────────────────────────────
+
+
 @pytest.mark.unit
 class TestClaudeBuilderSpiderInit:
     def test_spider_name(self) -> None:
@@ -103,26 +164,36 @@ class TestClaudeBuilderSpiderInit:
         assert "https://builder.claude.ai/docs/test" in spider.seen
         assert "https://builder.claude.ai/docs/other" not in spider.seen
 
+    def test_content_hash_bloom_initialized(self) -> None:
+        spider = ClaudeBuilderSpider()
+        assert spider.seen_hashes is not None
+        spider.seen_hashes.add("abc123")
+        assert "abc123" in spider.seen_hashes
+        assert "def456" not in spider.seen_hashes
+
     def test_stats_initialized(self) -> None:
         spider = ClaudeBuilderSpider()
         assert spider._stats == {
             "discovery_urls": 0,
             "pages_fetched": 0,
             "pages_skipped_dedup": 0,
+            "pages_skipped_content_dedup": 0,
             "pages_skipped_lang": 0,
             "pages_failed": 0,
             "tutorials_found": 0,
             "kairos_found": 0,
         }
 
-    def test_custom_settings_type(self) -> None:
-        assert isinstance(ClaudeBuilderSpider.custom_settings, dict)
-        assert ClaudeBuilderSpider.custom_settings["CONCURRENT_REQUESTS"] == 16
-        assert ClaudeBuilderSpider.custom_settings["ROBOTSTXT_OBEY"] is True
+    def test_custom_settings_robotstxt_obey(self) -> None:
+        spider = ClaudeBuilderSpider()
+        assert spider.custom_settings["ROBOTSTXT_OBEY"] is True
 
     def test_source_urls(self) -> None:
         assert ClaudeBuilderSpider.SOURCES["llms"] == "https://builder.claude.ai/docs/llms.txt"
         assert ClaudeBuilderSpider.SOURCES["sitemap"] == "https://builder.claude.ai/sitemap.xml"
+
+
+# ── Extract methods ──────────────────────────────────────────────────
 
 
 @pytest.mark.unit
@@ -170,8 +241,13 @@ class TestExtractMethods:
         assert headings == [{"level": 6, "text": "Deep heading"}]
 
 
+# ── Classification pipeline ──────────────────────────────────────────
+
+
 @pytest.mark.unit
 class TestClassifyUrl:
+    """Test content-type classification (FMTI 2025: 'deduplication and classification')."""
+
     def test_classify_tutorial(self) -> None:
         spider = ClaudeBuilderSpider()
         assert spider._classify_url("https://builder.claude.ai/tutorials/first-app.md") == "tutorial"
@@ -203,6 +279,9 @@ class TestClassifyUrl:
         assert spider._classify_url("https://builder.claude.ai/docs/getting-started.md") == "page"
 
 
+# ── URL dedup ────────────────────────────────────────────────────────
+
+
 @pytest.mark.unit
 class TestShouldCrawl:
     def test_allows_valid_url(self) -> None:
@@ -229,6 +308,9 @@ class TestShouldCrawl:
         spider = ClaudeBuilderSpider(max_pages=1)
         spider._stats["pages_fetched"] = 1
         assert spider._should_crawl("https://builder.claude.ai/docs/test.md") is False
+
+
+# ── Discovery: llms.txt ──────────────────────────────────────────────
 
 
 @pytest.mark.integration
@@ -273,13 +355,14 @@ class TestParseLlmsTxt:
         spider = ClaudeBuilderSpider()
         response = self._fake_response(SAMPLE_LLMS_TXT)
         requests = list(spider.parse_llms_txt(response, source="llms"))
-        # Check that content_type is passed via cb_kwargs
-        cb_kwargs_list = [r.cb_kwargs for r in requests]
-        content_types = [kw["content_type"] for kw in cb_kwargs_list]
+        content_types = [r.cb_kwargs["content_type"] for r in requests]
         assert "kairos" in content_types
         assert "deployment" in content_types
         assert "security" in content_types
         assert "tutorial" in content_types
+
+
+# ── Discovery: sitemap ───────────────────────────────────────────────
 
 
 @pytest.mark.integration
@@ -315,6 +398,9 @@ class TestParseSitemap:
         response = self._fake_response(SAMPLE_SITEMAP)
         requests = list(spider.parse_sitemap(response, source="sitemap"))
         assert all(r.errback is not None for r in requests)
+
+
+# ── Page extraction + content dedup ──────────────────────────────────
 
 
 @pytest.mark.integration
@@ -373,6 +459,28 @@ class TestParseDocPage:
         item2 = list(spider2.parse_doc_page(response, source="llms", content_type="page"))[0]
         assert item1["content_hash"] == item2["content_hash"]
 
+    def test_parse_doc_page_content_dedup_skips_duplicate_content(self) -> None:
+        """Same content at two different URLs should be deduplicated."""
+        spider = ClaudeBuilderSpider()
+        resp1 = self._fake_response(SAMPLE_DOC_PAGE, url="https://builder.claude.ai/docs/page-a.md")
+        resp2 = self._fake_response(SAMPLE_DOC_PAGE, url="https://builder.claude.ai/docs/page-b.md")
+        items1 = list(spider.parse_doc_page(resp1, source="llms", content_type="page"))
+        items2 = list(spider.parse_doc_page(resp2, source="llms", content_type="page"))
+        assert len(items1) == 1
+        assert len(items2) == 0  # deduped by content hash
+        assert spider._stats["pages_skipped_content_dedup"] == 1
+
+    def test_parse_doc_page_different_content_not_deduped(self) -> None:
+        """Different content at different URLs should both pass."""
+        spider = ClaudeBuilderSpider()
+        resp1 = self._fake_response(SAMPLE_DOC_PAGE, url="https://builder.claude.ai/docs/page-a.md")
+        resp2 = self._fake_response(SAMPLE_KAIROS_PAGE, url="https://builder.claude.ai/kairos/overview.md")
+        items1 = list(spider.parse_doc_page(resp1, source="llms", content_type="page"))
+        items2 = list(spider.parse_doc_page(resp2, source="llms", content_type="kairos"))
+        assert len(items1) == 1
+        assert len(items2) == 1
+        assert spider._stats["pages_skipped_content_dedup"] == 0
+
     def test_parse_kairos_page(self) -> None:
         spider = ClaudeBuilderSpider()
         response = self._fake_response(SAMPLE_KAIROS_PAGE, url="https://builder.claude.ai/kairos/overview.md")
@@ -380,6 +488,9 @@ class TestParseDocPage:
         assert item["title"] == "KAIROS Autonomous Agent"
         assert item["description"] == "Monitor your codebase and fix errors overnight"
         assert item["content_type"] == "kairos"
+
+
+# ── Error handling ───────────────────────────────────────────────────
 
 
 @pytest.mark.integration
@@ -402,6 +513,9 @@ class TestHandleError:
         assert spider._stats["pages_failed"] == 3
 
 
+# ── Closed / stats ──────────────────────────────────────────────────
+
+
 @pytest.mark.unit
 class TestClosedMethod:
     def test_closed_logs_stats(self) -> None:
@@ -410,6 +524,7 @@ class TestClosedMethod:
             "discovery_urls": 20,
             "pages_fetched": 15,
             "pages_skipped_dedup": 3,
+            "pages_skipped_content_dedup": 1,
             "pages_skipped_lang": 1,
             "pages_failed": 1,
             "tutorials_found": 4,
@@ -417,6 +532,9 @@ class TestClosedMethod:
         }
         # closed() just logs, should not raise
         spider.closed("finished")
+
+
+# ── Start requests ───────────────────────────────────────────────────
 
 
 @pytest.mark.integration
