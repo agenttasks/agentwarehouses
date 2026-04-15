@@ -5,7 +5,7 @@
     "moduleResolution": "Node16",
     "lib": ["ES2022"],
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDirs": ["src", "assets"],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

@@ -84,7 +84,7 @@ export class InstagramAdapter implements SocialAdapter {
         return failureResult("instagram_reels", `Container creation failed: ${errorText}`);
       }
 
-      const containerData: IGMediaResponse = await containerResponse.json();
+      const containerData = (await containerResponse.json()) as IGMediaResponse;
       const containerId = containerData.id;
 
       // Step 2: Poll until container is ready
@@ -108,7 +108,7 @@ export class InstagramAdapter implements SocialAdapter {
         return failureResult("instagram_reels", `Publish failed: ${errorText}`);
       }
 
-      const publishData: IGPublishResponse = await publishResponse.json();
+      const publishData = (await publishResponse.json()) as IGPublishResponse;
 
       return successResult(
         "instagram_reels",
@@ -131,7 +131,7 @@ export class InstagramAdapter implements SocialAdapter {
         return failureResult("instagram_reels", `Status check failed: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as IGPublishResponse & { permalink?: string };
 
       return successResult(
         "instagram_reels",
@@ -175,7 +175,7 @@ export class InstagramAdapter implements SocialAdapter {
         return false;
       }
 
-      const data: IGStatusResponse = await response.json();
+      const data = (await response.json()) as IGStatusResponse;
 
       if (data.status_code === "FINISHED") {
         return true;

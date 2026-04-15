@@ -109,7 +109,7 @@ export class YouTubeAdapter implements SocialAdapter {
         return failureResult("youtube_shorts", `Video upload failed: ${errorText}`);
       }
 
-      const result: YouTubeVideoResponse = await uploadResponse.json();
+      const result = (await uploadResponse.json()) as YouTubeVideoResponse;
 
       return successResult(
         "youtube_shorts",
@@ -137,8 +137,8 @@ export class YouTubeAdapter implements SocialAdapter {
         return failureResult("youtube_shorts", `Status check failed: ${response.statusText}`);
       }
 
-      const data = await response.json();
-      const items = data.items as YouTubeVideoResponse[] | undefined;
+      const data = (await response.json()) as { items?: YouTubeVideoResponse[] };
+      const items = data.items;
 
       if (!items?.length) {
         return failureResult("youtube_shorts", "Video not found");

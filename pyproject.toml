@@ -114,6 +114,23 @@ select = ["E", "F", "I", "W"]
 python_version = "3.11"
 strict = true
 
+[[tool.mypy.overrides]]
+module = [
+    "agentwarehouses.generation.*",
+    "agentwarehouses.spiders.neon_docs_spider",
+]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = [
+    "anthropic",
+    "anthropic.*",
+    "google.*",
+    "strawberry",
+    "strawberry.*",
+]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
