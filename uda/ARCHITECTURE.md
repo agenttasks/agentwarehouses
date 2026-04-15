@@ -294,18 +294,35 @@ fact_outcome
 
 ---
 
-## 5. Neon Postgres 18 Extension Stack
+## 5. Neon Postgres 18 Extension Stack (Scale Plan)
 
-| Extension | Role in World Model |
-|-----------|-------------------|
-| **pg_graphql** | Auto-generates GraphQL API from all tables. FK relationships become nested objects. RLS enforces per-user isolation. Zero middleware. |
-| **pgvector** | Stores embeddings for agent beliefs, skill descriptions, values taxonomy, task descriptions. Enables semantic search across world state. |
-| **pg_cron** | Scheduled jobs: dim_time population, stale belief invalidation, snapshot compaction, HuggingFace dataset sync. |
-| **pg_partman** | Time-based partitioning for fact_trajectory (highest volume table). Monthly partitions with automatic creation. |
-| **pg_jsonschema** | Validates JSONB columns (tool_calls, state_json, git_status) against stored schemas. |
-| **pg_uuidv7** | Sortable UUIDs for distributed session IDs across surfaces. |
-| **pgcrypto** | Hash sensitive fields (email, env vars) before storage. |
-| **pg_session_jwt** | JWT-based auth for pg_graphql endpoint. User identity flows from Claude Code OAuth token → JWT → RLS policy. |
+**Neon Scale plan** ($69/mo): 16 CU autoscaling (64 GB RAM), 750 compute-hours/mo,
+25 branches/project, read replicas, IP allowlisting, SOC 2, 100 GB network transfer.
+
+| Extension | Role in World Model | Premium Feature |
+|-----------|-------------------|-----------------|
+| **pg_graphql** | Auto-generates GraphQL API from all tables. FK → nested objects. RLS → per-user isolation. | `@graphql` comment directives, `inflect_names` for camelCase |
+| **pgvector** | HNSW indexes on beliefs, skills, values, interview transcripts. Sub-10ms semantic search. | 384-dim embeddings, HNSW (no training needed), cosine similarity |
+| **pg_cron** | HF dataset sync (daily/weekly/monthly), dim_time population, stale belief invalidation. | Runs on primary compute endpoint |
+| **pg_partman** | Monthly partitions on fact_trajectory (highest volume). Auto-creates future partitions. | Reduces query time on multi-million row trajectory table |
+| **pg_mooncake** | Columnstore tables + DuckDB execution for analytics aggregations on fact tables. | 10-100x faster OLAP queries on star schema |
+| **pgjwt** | JWT generation/validation in Postgres. Claude Code OAuth → JWT → RLS policy chain. | Cross-device auth without middleware |
+| **pgcrypto** | Hash sensitive fields (email, env vars) before storage. | gen_random_uuid() for session IDs |
+| **pg_uuidv7** | Sortable UUIDs for distributed session IDs across 6 surfaces. | Time-ordered for efficient B-tree indexing |
+| **pgmq** | Message queue for async hook event ingestion (PostToolUse → queue → batch insert). | Decouples hook latency from Postgres write latency |
+| **pg_tiktoken** | Token counting in Postgres (validate fact_message.token_count against HF baselines). | OpenAI-compatible tokenizer in SQL |
+
+### Neon Premium Features Used
+
+| Feature | How We Use It |
+|---------|--------------|
+| **Instant branching** | `hf-safety-testing` branch for 2.14M adversarial trajectories; `hf-staging` for weekly dataset sync; `awm-synthesis` for synthetic environment generation |
+| **Autoscale 0.25→16 CU** | Idle at 0.25 CU ($0.03/hr); scale to 16 CU (64 GB) during ETL ingest and HNSW index builds; back to 0.25 within 5 min |
+| **Read replicas** | Analytics queries (Grafana, Sphere-style reporting) hit read replica; hook event writes go to primary |
+| **Point-in-time recovery** | Branch from any timestamp — replay world model state at the moment a bug was introduced |
+| **IP allowlisting** | Restrict pg_graphql endpoint to Claude Code hook IPs + your dev machines |
+| **Connection pooling** | PgBouncer transaction mode: 10,000 max client connections across all surfaces |
+| **Consumption API** | Monitor compute/storage/network usage programmatically; alert on cost anomalies |
 
 ### pg_graphql Configuration
 
@@ -391,23 +408,87 @@ Claude Code Session
 
 ---
 
-## 7. HuggingFace Data Integration
+## 7. HuggingFace Data Integration — All 10 Datasets
 
-| Dataset | World Model Target | Sync Strategy |
-|---------|-------------------|---------------|
-| **values-in-the-wild** (3,307 values) | `dim_value` dimension table | One-time load + pg_cron weekly refresh |
-| **EconomicIndex** (task penetration) | `fact_outcome` calibration — weight task types by real-world economic impact | Monthly sync from HF API |
-| **AnthropicInterviewer** (1,250 transcripts) | `agent_belief` seed data — extract professional AI usage patterns | One-time ETL for belief priors |
-| **alignment-faking-rl** (safety transcripts) | `fact_trajectory` test data — adversarial evaluation trajectories | Load into test branch (Neon branching) |
-| **model-written-evals** (personality benchmarks) | `dim_value` + `fact_reasoning` — personality consistency baselines | One-time load |
+Full DDL: `schema/hf_datasets_schema.sql`
+ETL pipeline: `scripts/hf_etl_pipeline.py`
 
-### Neon Branching for HF Data Isolation
+### 7.1 Dataset → World Model Mapping
+
+| # | Dataset | Rows | World Model Role | Target Tables |
+|---|---------|------|-----------------|---------------|
+| 1 | **EconomicIndex** (15k DL) | Millions | Weight tasks by real-world economic impact; Opus 4.5/4.6 learning curves | `economic_index`, `economic_job_exposure` → calibrates `fact_outcome` |
+| 2 | **AnthropicInterviewer** (1.5k DL) | 1,250 | Seed agent beliefs with professional AI usage patterns; pgvector semantic search | `interviewer_transcripts` (w/ HNSW embedding) → seeds `agent_belief` |
+| 3 | **alignment-faking-rl** (556 DL) | 2.14M | Adversarial trajectory baselines for safety scoring | `alignment_faking` → baselines for `fact_trajectory` (safety branch) |
+| 4 | **values-in-the-wild** (469 DL) | 6,910 | Behavioral value taxonomy (3,307 values + hierarchical clusters) | `values_frequencies` + `values_tree` → populates `dim_value` |
+| 5 | **election_questions** (301 DL) | 2,600 | Domain-specific safety gates for sensitive topics | `election_questions` → `fact_outcome` safety calibration |
+| 6 | **persuasion** (1.6k DL) | 3,939 | Calibrate agent confidence scoring (human vs model persuasiveness) | `persuasion` → calibrates `agent_belief.confidence` |
+| 7 | **discrim-eval** (396 DL) | 18,900 | Bias detection baselines (70 scenarios × 135 demographics × 2 types) | `discrim_eval` → `fact_outcome` fairness auditing |
+| 8 | **llm_global_opinions** (1.8k DL) | 2,556 | Cross-cultural consistency checks (Pew + World Values Survey) | `llm_global_opinions` → `agent_belief` consistency validation |
+| 9 | **hh-rlhf** (35.8k DL) | 169k | Human preference pairs for response quality calibration | `hh_rlhf` + `hh_rlhf_red_team` → calibrates `fact_message` quality |
+| 10 | **model-written-evals** | 1k-10k | Personality/sycophancy/safety benchmarks | `model_written_evals` → `dim_value` personality + `fact_reasoning` |
+
+### 7.2 Premium Feature Usage
+
+**HuggingFace Pro** ($9/mo):
+- Parquet API for bulk dataset download (no row-by-row pagination)
+- 2,500 API calls/5min (vs 1,000 free) — sync all 10 datasets in one pg_cron run
+- 12,000 resolver calls/5min for metadata queries
+- Private dataset storage for processed/enriched versions
+- Data Studio on private datasets for validation before Postgres ingest
+
+**Neon Scale** ($69/mo base):
+- **Instant branching**: Load alignment-faking-rl (17.2 GB) and red-team data into
+  isolated `hf-safety-testing` branch — zero impact on production
+- **Autoscale to 16 CU** (64 GB RAM) during bulk ETL ingest, scale back to 0.25 CU at idle
+- **Read replicas** for analytics queries while ETL writes to primary
+- **750 compute-hours/mo** covers continuous pg_cron sync + query workload
+- **pg_cron** schedules: daily EconomicIndex sync, weekly values refresh, monthly full resync
+- **HNSW indexes** on pgvector columns for sub-10ms semantic search across beliefs/values
+
+### 7.3 Neon Branching Strategy
 
 ```
-main branch (production world model)
-  ├── hf-values-staging (load values-in-the-wild, validate, merge)
-  ├── hf-econ-staging (load EconomicIndex updates, validate, merge)
-  └── hf-safety-testing (load alignment-faking-rl, run evals, discard)
+main (production world model — always serving GraphQL via pg_graphql)
+  │
+  ├── hf-staging (weekly: sync all 10 datasets, validate, merge to main)
+  │     └── pg_cron: SELECT cron.schedule('hf-sync', '0 3 * * 0', ...)
+  │
+  ├── hf-safety-testing (alignment-faking-rl + red-team data — never merged)
+  │     └── 2.14M adversarial trajectories for isolated safety evaluation
+  │     └── Branched from main, gets production dim_* tables automatically
+  │
+  ├── hf-econ-staging (monthly: EconomicIndex new releases)
+  │     └── Validate Opus 4.6 learning curves before production exposure
+  │
+  └── awm-synthesis (AWM pipeline generates synthetic environments here)
+        └── 1,000 scenarios × 10 tasks = 10,000 synthetic trajectories
+        └── Verify against production dim_tool / dim_model, then merge facts
+```
+
+### 7.4 ETL Pipeline Architecture
+
+```
+HuggingFace Parquet API                    Neon Postgres 18
+─────────────────────                      ────────────────
+                                           
+GET /parquet?dataset=Anthropic/X           ┌─── main branch ─────────┐
+  → Parquet file URLs (S3 signed)          │ hf_anthropic schema     │
+  → Download with httpx                    │   economic_index        │
+  → Read with pyarrow                      │   interviewer_transcripts│
+  → COPY INTO via psycopg3                 │   values_frequencies    │
+  → Update sync_state                      │   persuasion            │
+                                           │   discrim_eval          │
+Scheduling (pg_cron):                      │   election_questions    │
+  Daily:  EconomicIndex (new releases)     │   llm_global_opinions   │
+  Weekly: values-in-the-wild refresh       │   hh_rlhf              │
+  Monthly: full resync all 10 datasets     │   model_written_evals   │
+                                           └─────────────────────────┘
+                                           
+                                           ┌─ hf-safety-testing ─────┐
+                                           │   alignment_faking      │
+                                           │   hh_rlhf_red_team     │
+                                           └─────────────────────────┘
 ```
 
 ---
