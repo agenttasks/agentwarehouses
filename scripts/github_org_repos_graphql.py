@@ -138,6 +138,7 @@ def main():
 
     try:
         import orjson
+
         serialize = lambda obj: orjson.dumps(obj)  # noqa: E731
     except ImportError:
         serialize = lambda obj: json.dumps(obj, ensure_ascii=False).encode()  # noqa: E731
@@ -165,6 +166,7 @@ def main():
 
     # Summary
     from collections import Counter
+
     orgs = Counter(r["org"] for r in all_repos)
     print(f"\nTotal: {len(all_repos)} repos across {len(orgs)} orgs", file=sys.stderr)
     for org, count in orgs.most_common():

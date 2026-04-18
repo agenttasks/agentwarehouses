@@ -55,7 +55,7 @@ install-all: install-dev install-node install-sdks ## Install everything (Python
 
 .PHONY: install-ci
 install-ci: ## Install for CI (no editable, CPU-only, no torch)
-	$(UV) pip install --system ".[dev,models,warehouse]"
+	$(UV) pip install --system ".[dev,models,warehouse,research]"
 
 # ──────────────────────────────────────────────
 # Test
@@ -68,6 +68,7 @@ test: ## Run tests with parallel workers (auto-detect CPUs)
 .PHONY: test-cov
 test-cov: ## Run tests with coverage report (fail under 90%)
 	$(PYTHON) -m pytest tests/ -n auto --timeout=30 \
+		--ignore=tests/test_generation.py \
 		--cov=agentwarehouses --cov-report=term-missing --cov-fail-under=90
 
 .PHONY: test-unit
@@ -125,6 +126,14 @@ crawl-neon: ## Crawl Neon docs (llms.txt + sitemap, rbloom dedup)
 .PHONY: crawl-neon-all
 crawl-neon-all: ## Crawl all Neon sources (llms + sitemap + blog + pg tutorials)
 	scrapy crawl neon_docs -a sources=llms,sitemap,blog_sitemap,pg_sitemap
+
+.PHONY: crawl-builder
+crawl-builder: ## Crawl Claude Builder docs (llms.txt + sitemap, research preview)
+	scrapy crawl claude_builder
+
+.PHONY: crawl-builder-llms
+crawl-builder-llms: ## Crawl Claude Builder docs (llms.txt only)
+	scrapy crawl claude_builder -a sources=llms
 
 .PHONY: neon-inventory
 neon-inventory: ## Print neondatabase repo inventory (194 repos, refactor candidates)

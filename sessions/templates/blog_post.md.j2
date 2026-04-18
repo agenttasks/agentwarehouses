@@ -1,0 +1,22 @@
+---
+title: "{{ title }}"
+date: {{ date }}
+author: {{ author }}
+tags: [{{ tags | join(', ') }}]
+session: {{ session_id }}
+topic: {{ topic }}
+status: draft
+---
+
+# {{ title }}
+
+> {{ summary }}
+
+---
+
+{{ body }}
+
+---
+
+*Research session `{{ session_id }}` — topic: {{ topic }}*
+*Generated {{ date }} via agentwarehouses research pipeline.*

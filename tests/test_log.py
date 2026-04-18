@@ -58,8 +58,8 @@ class TestOtelConfig:
         config = get_otel_config()
         attrs = config["OTEL_RESOURCE_ATTRIBUTES"]
         assert "service.name=agentwarehouses" in attrs
-        assert "bot.name=Claudebot" in attrs
-        assert "bot.version=2.1.104" in attrs
+        assert "bot.name=ClaudeBot" in attrs
+        assert "bot.version=1.0" in attrs
 
     def test_privacy_defaults_disabled(self):
         config = get_otel_config()
@@ -88,4 +88,4 @@ class TestOtelReferences:
 
     def test_resource_attrs(self):
         assert OTEL_RESOURCE_ATTRS["service.name"] == "agentwarehouses"
-        assert OTEL_RESOURCE_ATTRS["bot.version"] == "2.1.104"
+        assert OTEL_RESOURCE_ATTRS["bot.version"] == "1.0"

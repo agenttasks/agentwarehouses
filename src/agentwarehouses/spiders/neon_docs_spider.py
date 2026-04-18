@@ -14,6 +14,7 @@ Usage:
     scrapy crawl neon_docs -a max_pages=50
     scrapy crawl neon_docs -a sources=llms,sitemap
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -28,6 +29,7 @@ from scrapy.http import Response
 from twisted.python.failure import Failure
 
 from agentwarehouses.items import DocPageItem
+from agentwarehouses.markdown import MarkdownParser
 
 # llms.txt link pattern: - [Title](URL): description
 LLMS_ENTRY_RE = re.compile(r"- \[([^\]]+)\]\(([^)]+)\)(?::\s*(.+))?")
@@ -54,7 +56,7 @@ class NeonDocsSpider(scrapy.Spider):
 
     name = "neon_docs"
 
-    custom_settings: dict[str, Any] = {
+    custom_settings: dict[bool | float | int | str | None, Any] | None = {
         "CONCURRENT_REQUESTS": 16,
         "CONCURRENT_REQUESTS_PER_DOMAIN": 8,
         "DOWNLOAD_DELAY": 0.5,
@@ -93,6 +95,7 @@ class NeonDocsSpider(scrapy.Spider):
             "pages_failed": 0,
             "guides_found": 0,
         }
+        self._parser = MarkdownParser()
 
     def start_requests(self) -> Generator[scrapy.Request, None, None]:
         """Yield requests for each active discovery source."""
@@ -117,9 +120,7 @@ class NeonDocsSpider(scrapy.Spider):
                     errback=self.handle_error,
                 )
 
-    def parse_llms_txt(
-        self, response: Response, *, source: str
-    ) -> Generator[scrapy.Request | DocPageItem, None, None]:
+    def parse_llms_txt(self, response: Response, *, source: str) -> Generator[scrapy.Request | DocPageItem, None, None]:
         """Parse llms.txt and yield requests for each linked page."""
         entries = LLMS_ENTRY_RE.findall(response.text)
         self.logger.info("[%s] Found %d entries in llms.txt", source, len(entries))
@@ -135,9 +136,7 @@ class NeonDocsSpider(scrapy.Spider):
                 errback=self.handle_error,
             )
 
-    def parse_sitemap(
-        self, response: Response, *, source: str
-    ) -> Generator[scrapy.Request, None, None]:
+    def parse_sitemap(self, response: Response, *, source: str) -> Generator[scrapy.Request, None, None]:
         """Parse sitemap XML and yield requests for doc pages."""
         urls = SITEMAP_LOC_RE.findall(response.text)
         self.logger.info("[%s] Found %d URLs in sitemap", source, len(urls))
@@ -185,15 +184,13 @@ class NeonDocsSpider(scrapy.Spider):
         text: str = response.text
         content_hash = hashlib.sha256(text.encode()).hexdigest()
 
-        title = self._extract_title(text)
-        description = self._extract_description(text)
-        headings = self._extract_headings(text)
+        parsed = self._parser.parse(text)
 
         item = DocPageItem()
         item["url"] = response.url
-        item["title"] = title
-        item["description"] = description
-        item["headings"] = headings
+        item["title"] = parsed.title
+        item["description"] = parsed.description
+        item["headings"] = parsed.headings_as_dicts()
         item["body_markdown"] = text
         item["content_length"] = len(text)
         item["crawled_at"] = datetime.now(timezone.utc).isoformat()
@@ -222,13 +219,16 @@ class NeonDocsSpider(scrapy.Spider):
     def handle_error(self, failure: Failure) -> None:
         """Log errors without crashing the crawl."""
         self._stats["pages_failed"] += 1
-        self.logger.error("ERROR: %s fetching %s", failure.type.__name__, failure.request.url)
+        self.logger.error(
+            "ERROR: %s fetching %s",
+            failure.type.__name__,  # type: ignore[union-attr]
+            failure.request.url,  # type: ignore[attr-defined]
+        )
 
     def closed(self, reason: str) -> None:
         """Log crawl summary stats on spider close."""
         self.logger.info(
-            "Crawl complete: discovered=%d fetched=%d dedup_skipped=%d "
-            "lang_skipped=%d failed=%d guides=%d reason=%s",
+            "Crawl complete: discovered=%d fetched=%d dedup_skipped=%d lang_skipped=%d failed=%d guides=%d reason=%s",
             self._stats["discovery_urls"],
             self._stats["pages_fetched"],
             self._stats["pages_skipped_dedup"],
@@ -240,23 +240,12 @@ class NeonDocsSpider(scrapy.Spider):
 
     @staticmethod
     def _extract_title(text: str) -> str:
-        match = re.search(r"^#\s+(.+)$", text, re.MULTILINE)
-        if match:
-            return match.group(1).strip()
-        match = re.search(r"<title>([^<]+)</title>", text)
-        return match.group(1).strip() if match else ""
+        return MarkdownParser().parse(text).title
 
     @staticmethod
     def _extract_description(text: str) -> str:
-        match = re.search(r"^>\s*(.+)$", text, re.MULTILINE)
-        if match:
-            return match.group(1).strip()
-        match = re.search(r'<meta\s+name="description"\s+content="([^"]+)"', text)
-        return match.group(1).strip() if match else ""
+        return MarkdownParser().parse(text).description
 
     @staticmethod
     def _extract_headings(text: str) -> list[dict[str, Any]]:
-        return [
-            {"level": len(m.group(1)), "text": m.group(2).strip()}
-            for m in re.finditer(r"^(#{1,6})\s+(.+)$", text, re.MULTILINE)
-        ]
+        return MarkdownParser().parse(text).headings_as_dicts()

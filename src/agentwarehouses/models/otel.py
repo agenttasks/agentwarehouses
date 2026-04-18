@@ -97,6 +97,6 @@ EVENTS = [
 RESOURCE_ATTRS = {
     "service.name": "agentwarehouses",
     "service.version": "0.2.0",
-    "bot.name": "Claudebot",
-    "bot.version": "2.1.104",
+    "bot.name": "ClaudeBot",
+    "bot.version": "1.0",
 }

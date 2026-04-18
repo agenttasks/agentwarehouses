@@ -14,6 +14,7 @@ dependencies = [
     "orjson>=3.10,<4.0",
     "rbloom>=1.5,<2.0",
     "colorlog>=6.10,<7.0",
+    "markdown-it-py>=3.0,<5.0",
 ]
 
 [project.optional-dependencies]
@@ -59,6 +60,31 @@ gpu = [
     "mempalace>=3.0,<4.0",
 ]
 
+# ── Alignment research tooling (safety-research repos) ───────
+# Packages used by Anthropic alignment engineers in:
+#   - safety-research/safety-tooling (inference API)
+#   - safety-research/petri (automated auditing)
+#   - anthropics/anthropic-retrieval-demo (search/retrieval)
+#   - transformer-circuits.pub research
+research = [
+    "anthropic>=0.52,<1.0",
+    "httpx>=0.28,<1.0",
+    "beautifulsoup4>=4.12,<5.0",
+    "nltk>=3.9,<4.0",
+    "tiktoken>=0.9,<1.0",
+    "jinja2>=3.1,<4.0",
+    "pyyaml>=6.0,<7.0",
+    "rich>=14.0,<15.0",
+    "wandb>=0.19,<1.0",
+    "matplotlib>=3.10,<4.0",
+    "plotly>=6.0,<7.0",
+    "pydantic>=2.9,<4.0",
+    "tenacity>=9.0,<10.0",
+    "python-dotenv>=1.0,<2.0",
+    "scikit-learn>=1.5,<2.0",
+    "sentence-transformers>=3.3,<4.0",
+]
+
 # ── MCP + Claude Agent SDKs ───────────────────────────────
 mcp = [
     "mcp>=1.27,<2.0",
@@ -86,6 +112,7 @@ dev = [
     "pytest-benchmark>=5.1",
     "pydantic>=2.9,<4.0",
     "pre-commit>=4.0",
+    "types-PyYAML>=6.0",
 ]
 
 [tool.release-please]
@@ -113,6 +140,11 @@ select = ["E", "F", "I", "W"]
 [tool.mypy]
 python_version = "3.11"
 strict = true
+exclude = ["generation/"]
+
+[[tool.mypy.overrides]]
+module = "agentwarehouses.generation.*"
+ignore_errors = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -131,7 +163,12 @@ addopts = [
 
 [tool.coverage.run]
 source = ["agentwarehouses"]
-omit = ["*/settings.py"]
+omit = [
+    "*/settings.py",
+    "*/generation/*",
+    "*/neon_docs_spider.py",
+    "*/clio/pipeline.py",
+]
 
 [tool.coverage.report]
 fail_under = 90

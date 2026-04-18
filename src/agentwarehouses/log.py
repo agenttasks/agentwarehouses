@@ -19,12 +19,14 @@ import colorlog
 # Match Scrapy's LOG_LEVEL from settings.py, overridable via env
 _DEFAULT_LEVEL = os.environ.get("SCRAPY_LOG_LEVEL", "INFO").upper()
 
-# OTEL-aware resource attributes (Claude Code 2.1.104 telemetry)
+# OTEL-aware resource attributes
+# bot.name matches Anthropic's three-bot framework (ClaudeBot/1.0)
+# Ref: https://support.claude.com/en/articles/8896518
 OTEL_RESOURCE_ATTRS = {
     "service.name": "agentwarehouses",
-    "service.version": "0.1.0",
-    "bot.name": "Claudebot",
-    "bot.version": "2.1.104",
+    "service.version": "0.2.0",
+    "bot.name": "ClaudeBot",
+    "bot.version": "1.0",
 }
 
 # Color scheme: severity -> color

@@ -175,9 +175,7 @@ class Query:
         return _pydantic_to_gql_gen_task(task) if task else None
 
     @strawberry.field
-    def list_generation_tasks(
-        self, status: str | None = None, limit: int = 20
-    ) -> list[GenerationTaskType]:
+    def list_generation_tasks(self, status: str | None = None, limit: int = 20) -> list[GenerationTaskType]:
         tasks = list(_generation_tasks.values())
         if status:
             tasks = [t for t in tasks if t.status.value == status]
@@ -189,9 +187,7 @@ class Query:
         return _pydantic_to_gql_video_asset(asset) if asset else None
 
     @strawberry.field
-    def list_video_assets(
-        self, platform: str | None = None, limit: int = 20
-    ) -> list[VideoAssetType]:
+    def list_video_assets(self, platform: str | None = None, limit: int = 20) -> list[VideoAssetType]:
         assets = list(_video_assets.values())
         if platform:
             assets = [a for a in assets if any(p.value == platform for p in a.platforms)]

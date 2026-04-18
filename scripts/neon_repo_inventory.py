@@ -10,6 +10,7 @@ Usage:
 
 Output: Grouped inventory with refactoring recommendations.
 """
+
 from __future__ import annotations
 
 import json
@@ -19,6 +20,7 @@ from dataclasses import asdict, dataclass, field
 
 # ── Repository data (from GitHub GraphQL search, April 2026) ──────────
 # 194 repos in neondatabase org — top 90 by stars included here.
+
 
 @dataclass
 class NeonRepo:
@@ -46,9 +48,7 @@ EXAMPLE_PATTERNS = re.compile(
     r"ping-thing|yc-idea-matcher|ask-neon|neon-chatbot|sql-query)"
 )
 
-ACTION_PATTERNS = re.compile(
-    r"(action|gh-workflow|github-automation)"
-)
+ACTION_PATTERNS = re.compile(r"(action|gh-workflow|github-automation)")
 
 INTEGRATION_PATTERNS = re.compile(
     r"(mcp-server|mcp-neon|agent-skills|ai-rules|add-mcp|"
@@ -60,10 +60,25 @@ TOOL_PATTERNS = re.compile(
     r"instant-postgres|instagres|claude_astgrep|pg-prechecks|neon_local)"
 )
 
-CORE_REPOS = {"neon", "postgres", "serverless", "autoscaling", "wsproxy",
-              "neonvm", "tokio-epoll-uring", "helm-charts", "rfcs",
-              "pgrag", "pg_embedding", "pg_session_jwt", "postgresql_anonymizer",
-              "website", "dev-actions", "go-chef", "neon-pkgs"}
+CORE_REPOS = {
+    "neon",
+    "postgres",
+    "serverless",
+    "autoscaling",
+    "wsproxy",
+    "neonvm",
+    "tokio-epoll-uring",
+    "helm-charts",
+    "rfcs",
+    "pgrag",
+    "pg_embedding",
+    "pg_session_jwt",
+    "postgresql_anonymizer",
+    "website",
+    "dev-actions",
+    "go-chef",
+    "neon-pkgs",
+}
 
 
 def classify_repo(repo: NeonRepo) -> NeonRepo:
@@ -128,15 +143,33 @@ def classify_repo(repo: NeonRepo) -> NeonRepo:
 
 # ── Repo data from GitHub search results ──────────────────────────────
 REPOS: list[NeonRepo] = [
-    NeonRepo("neon", 21470, "Rust", "Serverless Postgres — separated storage and compute", topics=["database", "postgres", "rust", "serverless"]),
+    NeonRepo(
+        "neon",
+        21470,
+        "Rust",
+        "Serverless Postgres — separated storage and compute",
+        topics=["database", "postgres", "rust", "serverless"],
+    ),
     NeonRepo("appdotbuild-agent", 751, "Python", "App generation agent"),
     NeonRepo("pg_embedding", 578, "C", "HNSW vector similarity search in PostgreSQL", archived=True),
     NeonRepo("mcp-server-neon", 578, "TypeScript", "MCP server for Neon Management API and databases"),
-    NeonRepo("serverless", 519, "JavaScript", "Connect to Neon from serverless/edge functions", topics=["cloudflare-workers", "serverless", "typescript"]),
+    NeonRepo(
+        "serverless",
+        519,
+        "JavaScript",
+        "Connect to Neon from serverless/edge functions",
+        topics=["cloudflare-workers", "serverless", "typescript"],
+    ),
     NeonRepo("website", 305, "JavaScript", "Official docs and website for Neon"),
     NeonRepo("autoscaling", 244, "Go", "Postgres vertical autoscaling in k8s"),
     NeonRepo("postgres-sample-dbs", 210, "PLpgSQL", "Sample Postgres databases for learning"),
-    NeonRepo("yc-idea-matcher", 163, "TypeScript", "YC idea matcher with pgvector", topics=["nextjs", "openai", "pgvector", "vercel-deployment"]),
+    NeonRepo(
+        "yc-idea-matcher",
+        163,
+        "TypeScript",
+        "YC idea matcher with pgvector",
+        topics=["nextjs", "openai", "pgvector", "vercel-deployment"],
+    ),
     NeonRepo("add-mcp", 150, "TypeScript", "Open MCP config tool — npx add-mcp"),
     NeonRepo("wsproxy", 142, "Go", "WebSocket proxy"),
     NeonRepo("elephantshark", 134, "Ruby", "Postgres network traffic monitor"),
@@ -144,17 +177,35 @@ REPOS: list[NeonRepo] = [
     NeonRepo("pgrag", 99, "Rust", "Postgres RAG pipeline extensions", topics=["chunking", "embeddings", "rag"]),
     NeonRepo("ai-rules", 81, "TypeScript", "AI rules for Neon database contexts"),
     NeonRepo("drizzle-overview", 76, "TypeScript", "Demo Drizzle ORM + Hono + Neon API"),
-    NeonRepo("examples", 71, "TypeScript", "Examples and code snippets for Neon integrations", topics=["ai", "django", "langchain", "nextjs", "python"]),
+    NeonRepo(
+        "examples",
+        71,
+        "TypeScript",
+        "Examples and code snippets for Neon integrations",
+        topics=["ai", "django", "langchain", "nextjs", "python"],
+    ),
     NeonRepo("pg_session_jwt", 65, "Rust", "Postgres Extension for JWT Sessions"),
     NeonRepo("tokio-epoll-uring", 63, "Rust", "io_uring from vanilla tokio"),
-    NeonRepo("db-per-tenant", 62, "TypeScript", "Chat-with-pdf app — db per user with pgvector", topics=["multitenancy", "pgvector"]),
+    NeonRepo(
+        "db-per-tenant",
+        62,
+        "TypeScript",
+        "Chat-with-pdf app — db per user with pgvector",
+        topics=["multitenancy", "pgvector"],
+    ),
     NeonRepo("ask-neon", 60, "TypeScript", "Chatbot: search knowledge base by semantic similarity"),
     NeonRepo("helm-charts", 59, "Go Template", "Neon helm charts"),
     NeonRepo("cloudflare-drizzle-neon", 58, "TypeScript", "API using Cloudflare Workers + Drizzle + Neon"),
     NeonRepo("create-branch-action", 51, "TypeScript", "GitHub Action to create a new Neon branch"),
     NeonRepo("agent-skills", 49, "TypeScript", "Agent Skills for Neon Serverless Postgres"),
     NeonRepo("neon-pkgs", 48, "TypeScript", "CLI to instantiate a database with a single command"),
-    NeonRepo("preview-branches-with-vercel", 43, "TypeScript", "Branch for every Vercel preview deployment", topics=["branching", "preview-deploy", "vercel"]),
+    NeonRepo(
+        "preview-branches-with-vercel",
+        43,
+        "TypeScript",
+        "Branch for every Vercel preview deployment",
+        topics=["branching", "preview-deploy", "vercel"],
+    ),
     NeonRepo("psql-describe", 38, "JavaScript", "psql \\d commands ported to JavaScript"),
     NeonRepo("neon-auth-nextjs-template", 37, "TypeScript", "Template for Neon Auth + Next.js"),
     NeonRepo("postgres", 37, "", "PostgreSQL in Neon"),
@@ -163,7 +214,13 @@ REPOS: list[NeonRepo] = [
     NeonRepo("neon-chatbot", 28, "TypeScript", "Neon chatbot"),
     NeonRepo("neon_local", 27, "JavaScript", "Neon local development"),
     NeonRepo("neon-auth-demo-app", 27, "TypeScript", "Demo of Neon Auth"),
-    NeonRepo("preview-branches-with-fly", 24, "TypeScript", "Branch for every Fly preview app", topics=["fly", "preview-deploy"]),
+    NeonRepo(
+        "preview-branches-with-fly",
+        24,
+        "TypeScript",
+        "Branch for every Fly preview app",
+        topics=["fly", "preview-deploy"],
+    ),
     NeonRepo("better-env", 21, "TypeScript", "Better environment variables"),
     NeonRepo("ping-thing", 21, "JavaScript", "Ping Neon via Vercel Edge Function"),
     NeonRepo("claude_astgrep", 19, "", "ast-grep rules generation with Claude Code"),
@@ -174,7 +231,13 @@ REPOS: list[NeonRepo] = [
     NeonRepo("neon-vercel-kysely", 18, "TypeScript", "Neon + Vercel Edge + Kysely"),
     NeonRepo("vercel-marketplace-neon", 17, "TypeScript", "Next.js + Vercel + Neon template"),
     NeonRepo("toolkit", 17, "TypeScript", "Neon toolkit"),
-    NeonRepo("azure-tenant-ai-chat", 13, "TypeScript", "Multi-user RAG chat on Azure + Neon", topics=["azure", "pgvector", "rag"]),
+    NeonRepo(
+        "azure-tenant-ai-chat",
+        13,
+        "TypeScript",
+        "Multi-user RAG chat on Azure + Neon",
+        topics=["azure", "pgvector", "rag"],
+    ),
     NeonRepo("rls-demo-custom-jwt", 13, "TypeScript", "Demo of Neon RLS with custom JWTs", topics=["neon-rls"]),
     NeonRepo("neon-data-api-neon-auth", 14, "TypeScript", "Note taking app — Neon Data API + Auth"),
     NeonRepo("postgres-open-library-search", 12, "TypeScript", "Instant search with ParadeDB pg_search"),
@@ -232,21 +295,21 @@ def print_report(groups: dict[str, list[NeonRepo]], fmt: str = "text") -> None:
             continue
         print(f"## {cat.upper()} ({len(repos)} repos)")
         print()
-        print(f"| Repo | Stars | Language | Refactorable |")
-        print(f"|------|-------|----------|-------------|")
+        print("| Repo | Stars | Language | Refactorable |")
+        print("|------|-------|----------|-------------|")
         for r in repos:
             flag = "Yes" if r.has_template_boilerplate else ""
             print(f"| {r.name} | {r.stars} | {r.language} | {flag} |")
         print()
 
-    print(f"## REFACTORING SUMMARY")
+    print("## REFACTORING SUMMARY")
     print()
     print(f"- **{template_count} repos** have template/example boilerplate that could be")
-    print(f"  refactored into shared templates or a monorepo")
-    print(f"- Common boilerplate: .github/workflows, tsconfig.json, .env.example,")
-    print(f"  package.json scaffolding, README badges, LICENSE")
+    print("  refactored into shared templates or a monorepo")
+    print("- Common boilerplate: .github/workflows, tsconfig.json, .env.example,")
+    print("  package.json scaffolding, README badges, LICENSE")
     print()
-    print(f"### Recommended template groups:")
+    print("### Recommended template groups:")
     print()
 
     # Group templates by pattern
