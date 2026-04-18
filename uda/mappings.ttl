@@ -1,0 +1,326 @@
+## Claude-UDA Mappings
+##
+## Connects domain concepts from domain_model.ttl to three data containers:
+##   1. GraphQL schema (schema.graphqls) — served via pg_graphql
+##   2. Avro schema (schema.avro) — Data Mesh source
+##   3. Postgres tables (star_schema_pg_graphql.sql) — pg_graphql backing store
+##
+## Following Netflix UDA conventions: each mapping links a subgraph of the
+## domain model to a subgraph of a container representation.
+
+@prefix claude:   <https://rdf.agentwarehouses.dev/onto/claude#> .
+@prefix upper:    <https://rdf.netflix.net/onto/upper#> .
+@prefix uda:      <https://rdf.netflix.net/onto/uda#> .
+@prefix mapping:  <https://rdf.netflix.net/onto/mapping#> .
+@prefix graphql:  <https://rdf.netflix.net/onto/graphql#> .
+@prefix avro:     <https://rdf.netflix.net/onto/avro#> .
+@prefix pg:       <https://rdf.agentwarehouses.dev/container/postgres#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+
+# ════════════════════════════════════════════════════════════════════
+# Data Container Registrations
+# ════════════════════════════════════════════════════════════════════
+
+## Postgres 18 + pg_graphql container
+pg:claude_analytics a uda:DataContainer ;
+    rdfs:label "Claude Analytics Star Schema" ;
+    rdfs:comment "Postgres 18 database with pg_graphql extension. Tables in claude_analytics schema." ;
+    uda:system "postgres" ;
+    uda:systemVersion "18" ;
+    uda:extension "pg_graphql" ;
+    uda:schema "claude_analytics" .
+
+## GraphQL projection container
+<urn:nflx:uda:graphql:claude_analytics> a uda:DataContainer ;
+    rdfs:label "Claude Analytics GraphQL API" ;
+    rdfs:comment "Federation-ready GraphQL schema projected from domain model. Served by pg_graphql." ;
+    uda:system "graphql" ;
+    uda:schemaFile "uda/schema.graphqls" .
+
+## Avro projection container
+<urn:nflx:uda:avro:claude_analytics> a uda:DataContainer ;
+    rdfs:label "Claude Analytics Avro" ;
+    rdfs:comment "Data Mesh Avro schema projected from domain model." ;
+    uda:system "avro" ;
+    uda:schemaFile "uda/schema.avro" .
+
+# ════════════════════════════════════════════════════════════════════
+# DimUser Mappings
+# ════════════════════════════════════════════════════════════════════
+
+<urn:nflx:uda:mapping:dim_user:pg> a mapping:Mapping ;
+    rdfs:label "DimUser to Postgres" ;
+    mapping:domainConcept claude:DimUser ;
+    mapping:container pg:claude_analytics ;
+    mapping:target "claude_analytics.dim_user" ;
+    mapping:fieldMapping [
+        mapping:domainProperty claude:DimUser_userKey ;       mapping:containerField "user_key" ] , [
+        mapping:domainProperty claude:DimUser_userId ;        mapping:containerField "user_id" ] , [
+        mapping:domainProperty claude:DimUser_email ;         mapping:containerField "email" ] , [
+        mapping:domainProperty claude:DimUser_planTier ;      mapping:containerField "plan_tier" ] , [
+        mapping:domainProperty claude:DimUser_orgId ;         mapping:containerField "org_id" ] , [
+        mapping:domainProperty claude:DimUser_orgName ;       mapping:containerField "org_name" ] , [
+        mapping:domainProperty claude:DimUser_effectiveFrom ; mapping:containerField "effective_from" ] , [
+        mapping:domainProperty claude:DimUser_effectiveTo ;   mapping:containerField "effective_to" ] , [
+        mapping:domainProperty claude:DimUser_isCurrent ;     mapping:containerField "is_current" ] .
+
+<urn:nflx:uda:mapping:dim_user:graphql> a mapping:Mapping ;
+    rdfs:label "DimUser to GraphQL" ;
+    mapping:domainConcept claude:DimUser ;
+    mapping:container <urn:nflx:uda:graphql:claude_analytics> ;
+    mapping:target "CLAUDE_DimUser" ;
+    mapping:fieldMapping [
+        mapping:domainProperty claude:DimUser_userKey ;       mapping:containerField "claude_user_key" ] , [
+        mapping:domainProperty claude:DimUser_userId ;        mapping:containerField "claude_user_id" ] , [
+        mapping:domainProperty claude:DimUser_email ;         mapping:containerField "claude_email" ] , [
+        mapping:domainProperty claude:DimUser_planTier ;      mapping:containerField "claude_plan_tier" ] , [
+        mapping:domainProperty claude:DimUser_orgId ;         mapping:containerField "claude_org_id" ] , [
+        mapping:domainProperty claude:DimUser_orgName ;       mapping:containerField "claude_org_name" ] , [
+        mapping:domainProperty claude:DimUser_effectiveFrom ; mapping:containerField "claude_effective_from" ] , [
+        mapping:domainProperty claude:DimUser_effectiveTo ;   mapping:containerField "claude_effective_to" ] , [
+        mapping:domainProperty claude:DimUser_isCurrent ;     mapping:containerField "claude_is_current" ] .
+
+<urn:nflx:uda:mapping:dim_user:avro> a mapping:Mapping ;
+    rdfs:label "DimUser to Avro" ;
+    mapping:domainConcept claude:DimUser ;
+    mapping:container <urn:nflx:uda:avro:claude_analytics> ;
+    mapping:target "CLAUDE_DimUser" ;
+    mapping:fieldMapping [
+        mapping:domainProperty claude:DimUser_userKey ;       mapping:containerField "CLAUDE_user_key" ] , [
+        mapping:domainProperty claude:DimUser_userId ;        mapping:containerField "CLAUDE_user_id" ] , [
+        mapping:domainProperty claude:DimUser_email ;         mapping:containerField "CLAUDE_email" ] , [
+        mapping:domainProperty claude:DimUser_planTier ;      mapping:containerField "CLAUDE_plan_tier" ] , [
+        mapping:domainProperty claude:DimUser_orgId ;         mapping:containerField "CLAUDE_org_id" ] , [
+        mapping:domainProperty claude:DimUser_orgName ;       mapping:containerField "CLAUDE_org_name" ] , [
+        mapping:domainProperty claude:DimUser_effectiveFrom ; mapping:containerField "CLAUDE_effective_from" ] , [
+        mapping:domainProperty claude:DimUser_effectiveTo ;   mapping:containerField "CLAUDE_effective_to" ] , [
+        mapping:domainProperty claude:DimUser_isCurrent ;     mapping:containerField "CLAUDE_is_current" ] .
+
+# ════════════════════════════════════════════════════════════════════
+# DimDevice Mappings
+# ════════════════════════════════════════════════════════════════════
+
+<urn:nflx:uda:mapping:dim_device:pg> a mapping:Mapping ;
+    rdfs:label "DimDevice to Postgres" ;
+    mapping:domainConcept claude:DimDevice ;
+    mapping:container pg:claude_analytics ;
+    mapping:target "claude_analytics.dim_device" ;
+    mapping:fieldMapping [
+        mapping:domainProperty claude:DimDevice_deviceKey ; mapping:containerField "device_key" ] , [
+        mapping:domainProperty claude:DimDevice_deviceId ;  mapping:containerField "device_id" ] , [
+        mapping:domainProperty claude:DimDevice_os ;        mapping:containerField "os" ] , [
+        mapping:domainProperty claude:DimDevice_osVersion ; mapping:containerField "os_version" ] , [
+        mapping:domainProperty claude:DimDevice_arch ;      mapping:containerField "arch" ] , [
+        mapping:domainProperty claude:DimDevice_cpuCores ;  mapping:containerField "cpu_cores" ] , [
+        mapping:domainProperty claude:DimDevice_memoryGb ;  mapping:containerField "memory_gb" ] .
+
+<urn:nflx:uda:mapping:dim_device:graphql> a mapping:Mapping ;
+    rdfs:label "DimDevice to GraphQL" ;
+    mapping:domainConcept claude:DimDevice ;
+    mapping:container <urn:nflx:uda:graphql:claude_analytics> ;
+    mapping:target "CLAUDE_DimDevice" ;
+    mapping:fieldMapping [
+        mapping:domainProperty claude:DimDevice_deviceKey ; mapping:containerField "claude_device_key" ] , [
+        mapping:domainProperty claude:DimDevice_deviceId ;  mapping:containerField "claude_device_id" ] , [
+        mapping:domainProperty claude:DimDevice_os ;        mapping:containerField "claude_os" ] , [
+        mapping:domainProperty claude:DimDevice_osVersion ; mapping:containerField "claude_os_version" ] , [
+        mapping:domainProperty claude:DimDevice_arch ;      mapping:containerField "claude_arch" ] , [
+        mapping:domainProperty claude:DimDevice_cpuCores ;  mapping:containerField "claude_cpu_cores" ] , [
+        mapping:domainProperty claude:DimDevice_memoryGb ;  mapping:containerField "claude_memory_gb" ] .
+
+# ════════════════════════════════════════════════════════════════════
+# DimUserSurface Mappings
+# ════════════════════════════════════════════════════════════════════
+
+<urn:nflx:uda:mapping:dim_user_surface:pg> a mapping:Mapping ;
+    rdfs:label "DimUserSurface to Postgres" ;
+    mapping:domainConcept claude:DimUserSurface ;
+    mapping:container pg:claude_analytics ;
+    mapping:target "claude_analytics.dim_user_surface" ;
+    mapping:fieldMapping [
+        mapping:domainProperty claude:DimUserSurface_surfaceKey ;       mapping:containerField "surface_key" ] , [
+        mapping:domainProperty claude:DimUserSurface_surfaceType ;      mapping:containerField "surface_type" ] , [
+        mapping:domainProperty claude:DimUserSurface_surfaceVersion ;   mapping:containerField "surface_version" ] , [
+        mapping:domainProperty claude:DimUserSurface_extensionVersion ; mapping:containerField "extension_version" ] .
+
+<urn:nflx:uda:mapping:dim_user_surface:graphql> a mapping:Mapping ;
+    rdfs:label "DimUserSurface to GraphQL" ;
+    mapping:domainConcept claude:DimUserSurface ;
+    mapping:container <urn:nflx:uda:graphql:claude_analytics> ;
+    mapping:target "CLAUDE_DimUserSurface" ;
+    mapping:fieldMapping [
+        mapping:domainProperty claude:DimUserSurface_surfaceKey ;       mapping:containerField "claude_surface_key" ] , [
+        mapping:domainProperty claude:DimUserSurface_surfaceType ;      mapping:containerField "claude_surface_type" ] , [
+        mapping:domainProperty claude:DimUserSurface_surfaceVersion ;   mapping:containerField "claude_surface_version" ] , [
+        mapping:domainProperty claude:DimUserSurface_extensionVersion ; mapping:containerField "claude_extension_version" ] .
+
+# ════════════════════════════════════════════════════════════════════
+# DimModel Mappings
+# ════════════════════════════════════════════════════════════════════
+
+<urn:nflx:uda:mapping:dim_model:pg> a mapping:Mapping ;
+    rdfs:label "DimModel to Postgres" ;
+    mapping:domainConcept claude:DimModel ;
+    mapping:container pg:claude_analytics ;
+    mapping:target "claude_analytics.dim_model" ;
+    mapping:fieldMapping [
+        mapping:domainProperty claude:DimModel_modelKey ;         mapping:containerField "model_key" ] , [
+        mapping:domainProperty claude:DimModel_modelId ;          mapping:containerField "model_id" ] , [
+        mapping:domainProperty claude:DimModel_modelFamily ;      mapping:containerField "model_family" ] , [
+        mapping:domainProperty claude:DimModel_contextWindow ;    mapping:containerField "context_window" ] , [
+        mapping:domainProperty claude:DimModel_maxOutputTokens ;  mapping:containerField "max_output_tokens" ] , [
+        mapping:domainProperty claude:DimModel_supportsThinking ; mapping:containerField "supports_thinking" ] .
+
+<urn:nflx:uda:mapping:dim_model:graphql> a mapping:Mapping ;
+    rdfs:label "DimModel to GraphQL" ;
+    mapping:domainConcept claude:DimModel ;
+    mapping:container <urn:nflx:uda:graphql:claude_analytics> ;
+    mapping:target "CLAUDE_DimModel" ;
+    mapping:fieldMapping [
+        mapping:domainProperty claude:DimModel_modelKey ;         mapping:containerField "claude_model_key" ] , [
+        mapping:domainProperty claude:DimModel_modelId ;          mapping:containerField "claude_model_id" ] , [
+        mapping:domainProperty claude:DimModel_modelFamily ;      mapping:containerField "claude_model_family" ] , [
+        mapping:domainProperty claude:DimModel_contextWindow ;    mapping:containerField "claude_context_window" ] , [
+        mapping:domainProperty claude:DimModel_maxOutputTokens ;  mapping:containerField "claude_max_output_tokens" ] , [
+        mapping:domainProperty claude:DimModel_supportsThinking ; mapping:containerField "claude_supports_thinking" ] .
+
+# ════════════════════════════════════════════════════════════════════
+# DimTime Mappings
+# ════════════════════════════════════════════════════════════════════
+
+<urn:nflx:uda:mapping:dim_time:pg> a mapping:Mapping ;
+    rdfs:label "DimTime to Postgres" ;
+    mapping:domainConcept claude:DimTime ;
+    mapping:container pg:claude_analytics ;
+    mapping:target "claude_analytics.dim_time" ;
+    mapping:fieldMapping [
+        mapping:domainProperty claude:DimTime_timeKey ;      mapping:containerField "time_key" ] , [
+        mapping:domainProperty claude:DimTime_fullDatetime ; mapping:containerField "full_datetime" ] , [
+        mapping:domainProperty claude:DimTime_date ;         mapping:containerField "date" ] , [
+        mapping:domainProperty claude:DimTime_year ;         mapping:containerField "year" ] , [
+        mapping:domainProperty claude:DimTime_quarter ;      mapping:containerField "quarter" ] , [
+        mapping:domainProperty claude:DimTime_month ;        mapping:containerField "month" ] , [
+        mapping:domainProperty claude:DimTime_day ;          mapping:containerField "day" ] , [
+        mapping:domainProperty claude:DimTime_hour ;         mapping:containerField "hour" ] , [
+        mapping:domainProperty claude:DimTime_minute ;       mapping:containerField "minute" ] , [
+        mapping:domainProperty claude:DimTime_dayOfWeek ;    mapping:containerField "day_of_week" ] , [
+        mapping:domainProperty claude:DimTime_isWeekend ;    mapping:containerField "is_weekend" ] .
+
+<urn:nflx:uda:mapping:dim_time:graphql> a mapping:Mapping ;
+    rdfs:label "DimTime to GraphQL" ;
+    mapping:domainConcept claude:DimTime ;
+    mapping:container <urn:nflx:uda:graphql:claude_analytics> ;
+    mapping:target "CLAUDE_DimTime" ;
+    mapping:fieldMapping [
+        mapping:domainProperty claude:DimTime_timeKey ;      mapping:containerField "claude_time_key" ] , [
+        mapping:domainProperty claude:DimTime_fullDatetime ; mapping:containerField "claude_full_datetime" ] , [
+        mapping:domainProperty claude:DimTime_date ;         mapping:containerField "claude_date" ] , [
+        mapping:domainProperty claude:DimTime_year ;         mapping:containerField "claude_year" ] , [
+        mapping:domainProperty claude:DimTime_quarter ;      mapping:containerField "claude_quarter" ] , [
+        mapping:domainProperty claude:DimTime_month ;        mapping:containerField "claude_month" ] , [
+        mapping:domainProperty claude:DimTime_day ;          mapping:containerField "claude_day" ] , [
+        mapping:domainProperty claude:DimTime_hour ;         mapping:containerField "claude_hour" ] , [
+        mapping:domainProperty claude:DimTime_minute ;       mapping:containerField "claude_minute" ] , [
+        mapping:domainProperty claude:DimTime_dayOfWeek ;    mapping:containerField "claude_day_of_week" ] , [
+        mapping:domainProperty claude:DimTime_isWeekend ;    mapping:containerField "claude_is_weekend" ] .
+
+# ════════════════════════════════════════════════════════════════════
+# DimTool Mappings
+# ════════════════════════════════════════════════════════════════════
+
+<urn:nflx:uda:mapping:dim_tool:pg> a mapping:Mapping ;
+    rdfs:label "DimTool to Postgres" ;
+    mapping:domainConcept claude:DimTool ;
+    mapping:container pg:claude_analytics ;
+    mapping:target "claude_analytics.dim_tool" ;
+    mapping:fieldMapping [
+        mapping:domainProperty claude:DimTool_toolKey ;       mapping:containerField "tool_key" ] , [
+        mapping:domainProperty claude:DimTool_toolName ;      mapping:containerField "tool_name" ] , [
+        mapping:domainProperty claude:DimTool_toolCategory ;  mapping:containerField "tool_category" ] , [
+        mapping:domainProperty claude:DimTool_isMcp ;         mapping:containerField "is_mcp" ] , [
+        mapping:domainProperty claude:DimTool_mcpServerName ; mapping:containerField "mcp_server_name" ] .
+
+<urn:nflx:uda:mapping:dim_tool:graphql> a mapping:Mapping ;
+    rdfs:label "DimTool to GraphQL" ;
+    mapping:domainConcept claude:DimTool ;
+    mapping:container <urn:nflx:uda:graphql:claude_analytics> ;
+    mapping:target "CLAUDE_DimTool" ;
+    mapping:fieldMapping [
+        mapping:domainProperty claude:DimTool_toolKey ;       mapping:containerField "claude_tool_key" ] , [
+        mapping:domainProperty claude:DimTool_toolName ;      mapping:containerField "claude_tool_name" ] , [
+        mapping:domainProperty claude:DimTool_toolCategory ;  mapping:containerField "claude_tool_category" ] , [
+        mapping:domainProperty claude:DimTool_isMcp ;         mapping:containerField "claude_is_mcp" ] , [
+        mapping:domainProperty claude:DimTool_mcpServerName ; mapping:containerField "claude_mcp_server_name" ] .
+
+# ════════════════════════════════════════════════════════════════════
+# FactSession Mappings
+# ════════════════════════════════════════════════════════════════════
+
+<urn:nflx:uda:mapping:fact_session:pg> a mapping:Mapping ;
+    rdfs:label "FactSession to Postgres" ;
+    mapping:domainConcept claude:FactSession ;
+    mapping:container pg:claude_analytics ;
+    mapping:target "claude_analytics.fact_session" ;
+    mapping:fieldMapping [
+        mapping:domainProperty claude:FactSession_sessionKey ;      mapping:containerField "session_key" ] , [
+        mapping:domainProperty claude:FactSession_sessionId ;       mapping:containerField "session_id" ] , [
+        mapping:domainProperty claude:FactSession_status ;          mapping:containerField "status" ] , [
+        mapping:domainProperty claude:FactSession_userKey ;         mapping:containerField "user_key" ] , [
+        mapping:domainProperty claude:FactSession_deviceKey ;       mapping:containerField "device_key" ] , [
+        mapping:domainProperty claude:FactSession_surfaceKey ;      mapping:containerField "surface_key" ] , [
+        mapping:domainProperty claude:FactSession_modelKey ;        mapping:containerField "model_key" ] , [
+        mapping:domainProperty claude:FactSession_startTimeKey ;    mapping:containerField "start_time_key" ] , [
+        mapping:domainProperty claude:FactSession_endTimeKey ;      mapping:containerField "end_time_key" ] , [
+        mapping:domainProperty claude:FactSession_durationSeconds ; mapping:containerField "duration_seconds" ] , [
+        mapping:domainProperty claude:FactSession_messageCount ;    mapping:containerField "message_count" ] , [
+        mapping:domainProperty claude:FactSession_toolUseCount ;    mapping:containerField "tool_use_count" ] , [
+        mapping:domainProperty claude:FactSession_tokenInputCount ; mapping:containerField "token_input_count" ] , [
+        mapping:domainProperty claude:FactSession_tokenOutputCount; mapping:containerField "token_output_count" ] , [
+        mapping:domainProperty claude:FactSession_turnCount ;       mapping:containerField "turn_count" ] , [
+        mapping:domainProperty claude:FactSession_costUsd ;         mapping:containerField "cost_usd" ] .
+
+# ════════════════════════════════════════════════════════════════════
+# FactToolUse Mappings
+# ════════════════════════════════════════════════════════════════════
+
+<urn:nflx:uda:mapping:fact_tool_use:pg> a mapping:Mapping ;
+    rdfs:label "FactToolUse to Postgres" ;
+    mapping:domainConcept claude:FactToolUse ;
+    mapping:container pg:claude_analytics ;
+    mapping:target "claude_analytics.fact_tool_use" ;
+    mapping:fieldMapping [
+        mapping:domainProperty claude:FactToolUse_toolUseKey ;    mapping:containerField "tool_use_key" ] , [
+        mapping:domainProperty claude:FactToolUse_sessionKey ;    mapping:containerField "session_key" ] , [
+        mapping:domainProperty claude:FactToolUse_userKey ;       mapping:containerField "user_key" ] , [
+        mapping:domainProperty claude:FactToolUse_toolKey ;       mapping:containerField "tool_key" ] , [
+        mapping:domainProperty claude:FactToolUse_modelKey ;      mapping:containerField "model_key" ] , [
+        mapping:domainProperty claude:FactToolUse_timeKey ;       mapping:containerField "time_key" ] , [
+        mapping:domainProperty claude:FactToolUse_durationMs ;    mapping:containerField "duration_ms" ] , [
+        mapping:domainProperty claude:FactToolUse_inputTokens ;   mapping:containerField "input_tokens" ] , [
+        mapping:domainProperty claude:FactToolUse_outputTokens ;  mapping:containerField "output_tokens" ] , [
+        mapping:domainProperty claude:FactToolUse_isCacheHit ;    mapping:containerField "is_cache_hit" ] , [
+        mapping:domainProperty claude:FactToolUse_wasApproved ;   mapping:containerField "was_approved" ] , [
+        mapping:domainProperty claude:FactToolUse_errorOccurred ; mapping:containerField "error_occurred" ] .
+
+# ════════════════════════════════════════════════════════════════════
+# FactMessage Mappings
+# ════════════════════════════════════════════════════════════════════
+
+<urn:nflx:uda:mapping:fact_message:pg> a mapping:Mapping ;
+    rdfs:label "FactMessage to Postgres" ;
+    mapping:domainConcept claude:FactMessage ;
+    mapping:container pg:claude_analytics ;
+    mapping:target "claude_analytics.fact_message" ;
+    mapping:fieldMapping [
+        mapping:domainProperty claude:FactMessage_messageKey ;          mapping:containerField "message_key" ] , [
+        mapping:domainProperty claude:FactMessage_sessionKey ;          mapping:containerField "session_key" ] , [
+        mapping:domainProperty claude:FactMessage_userKey ;             mapping:containerField "user_key" ] , [
+        mapping:domainProperty claude:FactMessage_modelKey ;            mapping:containerField "model_key" ] , [
+        mapping:domainProperty claude:FactMessage_timeKey ;             mapping:containerField "time_key" ] , [
+        mapping:domainProperty claude:FactMessage_role ;                mapping:containerField "role" ] , [
+        mapping:domainProperty claude:FactMessage_contentLength ;       mapping:containerField "content_length" ] , [
+        mapping:domainProperty claude:FactMessage_tokenCount ;          mapping:containerField "token_count" ] , [
+        mapping:domainProperty claude:FactMessage_hasToolUse ;          mapping:containerField "has_tool_use" ] , [
+        mapping:domainProperty claude:FactMessage_thinkingTokens ;      mapping:containerField "thinking_tokens" ] , [
+        mapping:domainProperty claude:FactMessage_cacheCreationTokens ; mapping:containerField "cache_creation_tokens" ] , [
+        mapping:domainProperty claude:FactMessage_cacheReadTokens ;     mapping:containerField "cache_read_tokens" ] .

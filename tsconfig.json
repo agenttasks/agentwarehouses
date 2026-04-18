@@ -5,7 +5,7 @@
     "moduleResolution": "Node16",
     "lib": ["ES2022"],
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDirs": ["src", "assets", "uda"],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -19,6 +19,6 @@
     "noFallthroughCasesInSwitch": true,
     "noEmit": true
   },
-  "include": ["src/**/*.ts", "assets/**/*.ts"],
+  "include": ["src/**/*.ts", "assets/**/*.ts", "uda/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

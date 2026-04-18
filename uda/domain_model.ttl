@@ -1,0 +1,398 @@
+## Claude-UDA Star Schema Domain Model
+##
+## Ralph Kimball star schema for Claude Code user/device/session analytics,
+## expressed as a Netflix UDA knowledge graph.
+##
+## 6 conformed dimensions: User (Type 2 SCD), Device, UserSurface, Model, Time, Tool
+## 3 fact tables: FactSession, FactToolUse, FactMessage
+## 7 enumerations as controlled vocabularies
+
+@prefix claude:   <https://rdf.agentwarehouses.dev/onto/claude#> .
+@prefix upper:    <https://rdf.netflix.net/onto/upper#> .
+@prefix mwi:      <https://rdf.netflix.net/onto/mwi#> .
+@prefix uda:      <https://rdf.netflix.net/onto/uda#> .
+@prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh:       <http://www.w3.org/ns/shacl#> .
+
+# ════════════════════════════════════════════════════════════════════
+# Domain Model Registration
+# ════════════════════════════════════════════════════════════════════
+
+claude:ClaudeAnalytics a upper:DomainModel ;
+    rdfs:label "Claude Code Analytics" ;
+    rdfs:comment "Ralph Kimball star schema for Claude Code session analytics. Conformed dimensions with Type 2 SCD for User, three fact grain tables." ;
+    upper:prefix "claude" ;
+    upper:namespace "https://rdf.agentwarehouses.dev/onto/claude#" ;
+    upper:owner claude:Owner .
+
+claude:Owner a mwi:Owner ;
+    mwi:email "analytics@agentwarehouses.dev" ;
+    rdfs:comment "Contact and support channels elided." .
+
+# ════════════════════════════════════════════════════════════════════
+# Enumerations (Controlled Vocabularies)
+# ════════════════════════════════════════════════════════════════════
+
+## 1. PlanTier
+claude:PlanTier a upper:Enumeration ;
+    rdfs:label "Plan Tier" ;
+    rdfs:comment "Subscription tier for a Claude Code user." ;
+    upper:domainModel claude:ClaudeAnalytics ;
+    upper:value claude:PlanTier_Free ,
+               claude:PlanTier_Pro ,
+               claude:PlanTier_Team ,
+               claude:PlanTier_Enterprise ,
+               claude:PlanTier_Max .
+
+claude:PlanTier_Free     a claude:PlanTier ; rdfs:label "free" .
+claude:PlanTier_Pro      a claude:PlanTier ; rdfs:label "pro" .
+claude:PlanTier_Team     a claude:PlanTier ; rdfs:label "team" .
+claude:PlanTier_Enterprise a claude:PlanTier ; rdfs:label "enterprise" .
+claude:PlanTier_Max      a claude:PlanTier ; rdfs:label "max" .
+
+## 2. SurfaceType
+claude:SurfaceType a upper:Enumeration ;
+    rdfs:label "Surface Type" ;
+    rdfs:comment "Client surface through which a user interacts with Claude Code." ;
+    upper:domainModel claude:ClaudeAnalytics ;
+    upper:value claude:SurfaceType_CLI ,
+               claude:SurfaceType_VSCode ,
+               claude:SurfaceType_JetBrains ,
+               claude:SurfaceType_Web ,
+               claude:SurfaceType_DesktopMac ,
+               claude:SurfaceType_DesktopWindows .
+
+claude:SurfaceType_CLI           a claude:SurfaceType ; rdfs:label "cli" .
+claude:SurfaceType_VSCode        a claude:SurfaceType ; rdfs:label "vscode" .
+claude:SurfaceType_JetBrains     a claude:SurfaceType ; rdfs:label "jetbrains" .
+claude:SurfaceType_Web           a claude:SurfaceType ; rdfs:label "web" .
+claude:SurfaceType_DesktopMac    a claude:SurfaceType ; rdfs:label "desktop_mac" .
+claude:SurfaceType_DesktopWindows a claude:SurfaceType ; rdfs:label "desktop_windows" .
+
+## 3. ModelFamily
+claude:ModelFamily a upper:Enumeration ;
+    rdfs:label "Model Family" ;
+    rdfs:comment "Claude model family tier." ;
+    upper:domainModel claude:ClaudeAnalytics ;
+    upper:value claude:ModelFamily_Opus ,
+               claude:ModelFamily_Sonnet ,
+               claude:ModelFamily_Haiku .
+
+claude:ModelFamily_Opus   a claude:ModelFamily ; rdfs:label "opus" .
+claude:ModelFamily_Sonnet a claude:ModelFamily ; rdfs:label "sonnet" .
+claude:ModelFamily_Haiku  a claude:ModelFamily ; rdfs:label "haiku" .
+
+## 4. ToolCategory
+claude:ToolCategory a upper:Enumeration ;
+    rdfs:label "Tool Category" ;
+    rdfs:comment "Functional category of a tool invocation." ;
+    upper:domainModel claude:ClaudeAnalytics ;
+    upper:value claude:ToolCategory_Read ,
+               claude:ToolCategory_Write ,
+               claude:ToolCategory_Edit ,
+               claude:ToolCategory_Bash ,
+               claude:ToolCategory_Search ,
+               claude:ToolCategory_Agent ,
+               claude:ToolCategory_MCP ,
+               claude:ToolCategory_Other .
+
+claude:ToolCategory_Read   a claude:ToolCategory ; rdfs:label "read" .
+claude:ToolCategory_Write  a claude:ToolCategory ; rdfs:label "write" .
+claude:ToolCategory_Edit   a claude:ToolCategory ; rdfs:label "edit" .
+claude:ToolCategory_Bash   a claude:ToolCategory ; rdfs:label "bash" .
+claude:ToolCategory_Search a claude:ToolCategory ; rdfs:label "search" .
+claude:ToolCategory_Agent  a claude:ToolCategory ; rdfs:label "agent" .
+claude:ToolCategory_MCP    a claude:ToolCategory ; rdfs:label "mcp" .
+claude:ToolCategory_Other  a claude:ToolCategory ; rdfs:label "other" .
+
+## 5. MessageRole
+claude:MessageRole a upper:Enumeration ;
+    rdfs:label "Message Role" ;
+    rdfs:comment "Role of a message in a conversation turn." ;
+    upper:domainModel claude:ClaudeAnalytics ;
+    upper:value claude:MessageRole_User ,
+               claude:MessageRole_Assistant ,
+               claude:MessageRole_System ,
+               claude:MessageRole_Tool .
+
+claude:MessageRole_User      a claude:MessageRole ; rdfs:label "user" .
+claude:MessageRole_Assistant  a claude:MessageRole ; rdfs:label "assistant" .
+claude:MessageRole_System     a claude:MessageRole ; rdfs:label "system" .
+claude:MessageRole_Tool       a claude:MessageRole ; rdfs:label "tool" .
+
+## 6. SessionStatus
+claude:SessionStatus a upper:Enumeration ;
+    rdfs:label "Session Status" ;
+    rdfs:comment "Terminal state of a Claude Code session." ;
+    upper:domainModel claude:ClaudeAnalytics ;
+    upper:value claude:SessionStatus_Active ,
+               claude:SessionStatus_Completed ,
+               claude:SessionStatus_Abandoned ,
+               claude:SessionStatus_Errored ,
+               claude:SessionStatus_Compacted .
+
+claude:SessionStatus_Active    a claude:SessionStatus ; rdfs:label "active" .
+claude:SessionStatus_Completed a claude:SessionStatus ; rdfs:label "completed" .
+claude:SessionStatus_Abandoned a claude:SessionStatus ; rdfs:label "abandoned" .
+claude:SessionStatus_Errored   a claude:SessionStatus ; rdfs:label "errored" .
+claude:SessionStatus_Compacted a claude:SessionStatus ; rdfs:label "compacted" .
+
+## 7. DeviceOS
+claude:DeviceOS a upper:Enumeration ;
+    rdfs:label "Device OS" ;
+    rdfs:comment "Operating system family of the client device." ;
+    upper:domainModel claude:ClaudeAnalytics ;
+    upper:value claude:DeviceOS_MacOS ,
+               claude:DeviceOS_Linux ,
+               claude:DeviceOS_Windows ,
+               claude:DeviceOS_ChromeOS .
+
+claude:DeviceOS_MacOS    a claude:DeviceOS ; rdfs:label "macos" .
+claude:DeviceOS_Linux    a claude:DeviceOS ; rdfs:label "linux" .
+claude:DeviceOS_Windows  a claude:DeviceOS ; rdfs:label "windows" .
+claude:DeviceOS_ChromeOS a claude:DeviceOS ; rdfs:label "chromeos" .
+
+# ════════════════════════════════════════════════════════════════════
+# Conformed Dimensions
+# ════════════════════════════════════════════════════════════════════
+
+## DimUser — Type 2 Slowly Changing Dimension
+claude:DimUser a upper:DirectClass ;
+    rdfs:label "User Dimension" ;
+    rdfs:comment "Type 2 SCD tracking user attribute changes over time. Each row is a version of a user's profile." ;
+    upper:domainModel claude:ClaudeAnalytics ;
+    upper:key claude:DimUser_userKey ;
+    upper:property claude:DimUser_userKey ,
+                   claude:DimUser_userId ,
+                   claude:DimUser_email ,
+                   claude:DimUser_planTier ,
+                   claude:DimUser_orgId ,
+                   claude:DimUser_orgName ,
+                   claude:DimUser_effectiveFrom ,
+                   claude:DimUser_effectiveTo ,
+                   claude:DimUser_isCurrent .
+
+claude:DimUser_userKey       a upper:Attribute ; rdfs:label "user_key"       ; upper:datatype xsd:integer ;  rdfs:comment "Surrogate key." .
+claude:DimUser_userId        a upper:Attribute ; rdfs:label "user_id"        ; upper:datatype xsd:string ;   rdfs:comment "Natural key — Anthropic user ID." .
+claude:DimUser_email         a upper:Attribute ; rdfs:label "email"          ; upper:datatype xsd:string .
+claude:DimUser_planTier      a upper:Attribute ; rdfs:label "plan_tier"      ; upper:range claude:PlanTier .
+claude:DimUser_orgId         a upper:Attribute ; rdfs:label "org_id"         ; upper:datatype xsd:string ;   sh:minCount 0 .
+claude:DimUser_orgName       a upper:Attribute ; rdfs:label "org_name"       ; upper:datatype xsd:string ;   sh:minCount 0 .
+claude:DimUser_effectiveFrom a upper:Attribute ; rdfs:label "effective_from" ; upper:datatype xsd:dateTime .
+claude:DimUser_effectiveTo   a upper:Attribute ; rdfs:label "effective_to"   ; upper:datatype xsd:dateTime ; sh:minCount 0 ; rdfs:comment "NULL means current row." .
+claude:DimUser_isCurrent     a upper:Attribute ; rdfs:label "is_current"     ; upper:datatype xsd:boolean .
+
+## DimDevice
+claude:DimDevice a upper:DirectClass ;
+    rdfs:label "Device Dimension" ;
+    rdfs:comment "Physical or virtual device from which sessions originate." ;
+    upper:domainModel claude:ClaudeAnalytics ;
+    upper:key claude:DimDevice_deviceKey ;
+    upper:property claude:DimDevice_deviceKey ,
+                   claude:DimDevice_deviceId ,
+                   claude:DimDevice_os ,
+                   claude:DimDevice_osVersion ,
+                   claude:DimDevice_arch ,
+                   claude:DimDevice_cpuCores ,
+                   claude:DimDevice_memoryGb .
+
+claude:DimDevice_deviceKey a upper:Attribute ; rdfs:label "device_key" ; upper:datatype xsd:integer ; rdfs:comment "Surrogate key." .
+claude:DimDevice_deviceId  a upper:Attribute ; rdfs:label "device_id"  ; upper:datatype xsd:string ;  rdfs:comment "Natural key — device fingerprint." .
+claude:DimDevice_os        a upper:Attribute ; rdfs:label "os"         ; upper:range claude:DeviceOS .
+claude:DimDevice_osVersion a upper:Attribute ; rdfs:label "os_version" ; upper:datatype xsd:string .
+claude:DimDevice_arch      a upper:Attribute ; rdfs:label "arch"       ; upper:datatype xsd:string ;  rdfs:comment "e.g. x86_64, arm64." .
+claude:DimDevice_cpuCores  a upper:Attribute ; rdfs:label "cpu_cores"  ; upper:datatype xsd:integer ; sh:minCount 0 .
+claude:DimDevice_memoryGb  a upper:Attribute ; rdfs:label "memory_gb"  ; upper:datatype xsd:decimal ; sh:minCount 0 .
+
+## DimUserSurface
+claude:DimUserSurface a upper:DirectClass ;
+    rdfs:label "User Surface Dimension" ;
+    rdfs:comment "Client surface (CLI, IDE extension, web, desktop app) and its version." ;
+    upper:domainModel claude:ClaudeAnalytics ;
+    upper:key claude:DimUserSurface_surfaceKey ;
+    upper:property claude:DimUserSurface_surfaceKey ,
+                   claude:DimUserSurface_surfaceType ,
+                   claude:DimUserSurface_surfaceVersion ,
+                   claude:DimUserSurface_extensionVersion .
+
+claude:DimUserSurface_surfaceKey       a upper:Attribute ; rdfs:label "surface_key"       ; upper:datatype xsd:integer ; rdfs:comment "Surrogate key." .
+claude:DimUserSurface_surfaceType      a upper:Attribute ; rdfs:label "surface_type"      ; upper:range claude:SurfaceType .
+claude:DimUserSurface_surfaceVersion   a upper:Attribute ; rdfs:label "surface_version"   ; upper:datatype xsd:string ; rdfs:comment "e.g. 1.0.20." .
+claude:DimUserSurface_extensionVersion a upper:Attribute ; rdfs:label "extension_version" ; upper:datatype xsd:string ; sh:minCount 0 ; rdfs:comment "IDE extension version, NULL for CLI/web." .
+
+## DimModel
+claude:DimModel a upper:DirectClass ;
+    rdfs:label "Model Dimension" ;
+    rdfs:comment "Claude model used for inference in a session or tool call." ;
+    upper:domainModel claude:ClaudeAnalytics ;
+    upper:key claude:DimModel_modelKey ;
+    upper:property claude:DimModel_modelKey ,
+                   claude:DimModel_modelId ,
+                   claude:DimModel_modelFamily ,
+                   claude:DimModel_contextWindow ,
+                   claude:DimModel_maxOutputTokens ,
+                   claude:DimModel_supportsThinking .
+
+claude:DimModel_modelKey         a upper:Attribute ; rdfs:label "model_key"          ; upper:datatype xsd:integer ; rdfs:comment "Surrogate key." .
+claude:DimModel_modelId          a upper:Attribute ; rdfs:label "model_id"           ; upper:datatype xsd:string ;  rdfs:comment "e.g. claude-opus-4-6." .
+claude:DimModel_modelFamily      a upper:Attribute ; rdfs:label "model_family"       ; upper:range claude:ModelFamily .
+claude:DimModel_contextWindow    a upper:Attribute ; rdfs:label "context_window"     ; upper:datatype xsd:integer .
+claude:DimModel_maxOutputTokens  a upper:Attribute ; rdfs:label "max_output_tokens"  ; upper:datatype xsd:integer .
+claude:DimModel_supportsThinking a upper:Attribute ; rdfs:label "supports_thinking"  ; upper:datatype xsd:boolean .
+
+## DimTime — Date/Time role-playing dimension
+claude:DimTime a upper:DirectClass ;
+    rdfs:label "Time Dimension" ;
+    rdfs:comment "Conformed date-time dimension at minute grain. Role-played as start_time, end_time, event_time." ;
+    upper:domainModel claude:ClaudeAnalytics ;
+    upper:key claude:DimTime_timeKey ;
+    upper:property claude:DimTime_timeKey ,
+                   claude:DimTime_fullDatetime ,
+                   claude:DimTime_date ,
+                   claude:DimTime_year ,
+                   claude:DimTime_quarter ,
+                   claude:DimTime_month ,
+                   claude:DimTime_day ,
+                   claude:DimTime_hour ,
+                   claude:DimTime_minute ,
+                   claude:DimTime_dayOfWeek ,
+                   claude:DimTime_isWeekend .
+
+claude:DimTime_timeKey      a upper:Attribute ; rdfs:label "time_key"      ; upper:datatype xsd:integer ;  rdfs:comment "Surrogate key — YYYYMMDDHHmm." .
+claude:DimTime_fullDatetime a upper:Attribute ; rdfs:label "full_datetime" ; upper:datatype xsd:dateTime .
+claude:DimTime_date         a upper:Attribute ; rdfs:label "date"          ; upper:datatype xsd:date .
+claude:DimTime_year         a upper:Attribute ; rdfs:label "year"          ; upper:datatype xsd:integer .
+claude:DimTime_quarter      a upper:Attribute ; rdfs:label "quarter"       ; upper:datatype xsd:integer .
+claude:DimTime_month        a upper:Attribute ; rdfs:label "month"         ; upper:datatype xsd:integer .
+claude:DimTime_day          a upper:Attribute ; rdfs:label "day"           ; upper:datatype xsd:integer .
+claude:DimTime_hour         a upper:Attribute ; rdfs:label "hour"          ; upper:datatype xsd:integer .
+claude:DimTime_minute       a upper:Attribute ; rdfs:label "minute"        ; upper:datatype xsd:integer .
+claude:DimTime_dayOfWeek    a upper:Attribute ; rdfs:label "day_of_week"   ; upper:datatype xsd:string ;   rdfs:comment "e.g. Monday." .
+claude:DimTime_isWeekend    a upper:Attribute ; rdfs:label "is_weekend"    ; upper:datatype xsd:boolean .
+
+## DimTool
+claude:DimTool a upper:DirectClass ;
+    rdfs:label "Tool Dimension" ;
+    rdfs:comment "Tool available to Claude Code, including built-in tools and MCP server tools." ;
+    upper:domainModel claude:ClaudeAnalytics ;
+    upper:key claude:DimTool_toolKey ;
+    upper:property claude:DimTool_toolKey ,
+                   claude:DimTool_toolName ,
+                   claude:DimTool_toolCategory ,
+                   claude:DimTool_isMcp ,
+                   claude:DimTool_mcpServerName .
+
+claude:DimTool_toolKey       a upper:Attribute ; rdfs:label "tool_key"        ; upper:datatype xsd:integer ; rdfs:comment "Surrogate key." .
+claude:DimTool_toolName      a upper:Attribute ; rdfs:label "tool_name"       ; upper:datatype xsd:string ;  rdfs:comment "e.g. Read, Edit, Bash, mcp__github__create_pull_request." .
+claude:DimTool_toolCategory  a upper:Attribute ; rdfs:label "tool_category"   ; upper:range claude:ToolCategory .
+claude:DimTool_isMcp         a upper:Attribute ; rdfs:label "is_mcp"          ; upper:datatype xsd:boolean .
+claude:DimTool_mcpServerName a upper:Attribute ; rdfs:label "mcp_server_name" ; upper:datatype xsd:string ; sh:minCount 0 ; rdfs:comment "NULL for built-in tools." .
+
+# ════════════════════════════════════════════════════════════════════
+# Fact Tables
+# ════════════════════════════════════════════════════════════════════
+
+## FactSession — grain: one row per session
+claude:FactSession a upper:DirectClass ;
+    rdfs:label "Session Fact" ;
+    rdfs:comment "Grain: one row per Claude Code session. Accumulating snapshot — updated as session progresses." ;
+    upper:domainModel claude:ClaudeAnalytics ;
+    upper:key claude:FactSession_sessionKey ;
+    upper:property claude:FactSession_sessionKey ,
+                   claude:FactSession_sessionId ,
+                   claude:FactSession_status ,
+                   claude:FactSession_durationSeconds ,
+                   claude:FactSession_messageCount ,
+                   claude:FactSession_toolUseCount ,
+                   claude:FactSession_tokenInputCount ,
+                   claude:FactSession_tokenOutputCount ,
+                   claude:FactSession_turnCount ,
+                   claude:FactSession_costUsd ;
+    upper:relationship claude:FactSession_userKey ,
+                       claude:FactSession_deviceKey ,
+                       claude:FactSession_surfaceKey ,
+                       claude:FactSession_modelKey ,
+                       claude:FactSession_startTimeKey ,
+                       claude:FactSession_endTimeKey .
+
+claude:FactSession_sessionKey      a upper:Attribute     ; rdfs:label "session_key"       ; upper:datatype xsd:integer ; rdfs:comment "Surrogate key." .
+claude:FactSession_sessionId       a upper:Attribute     ; rdfs:label "session_id"        ; upper:datatype xsd:string ;  rdfs:comment "Natural key — e.g. session_01H5TrSfgA9x3vXTNYHnW4f8." .
+claude:FactSession_status          a upper:Attribute     ; rdfs:label "status"            ; upper:range claude:SessionStatus .
+claude:FactSession_durationSeconds a upper:Attribute     ; rdfs:label "duration_seconds"  ; upper:datatype xsd:decimal .
+claude:FactSession_messageCount    a upper:Attribute     ; rdfs:label "message_count"     ; upper:datatype xsd:integer .
+claude:FactSession_toolUseCount    a upper:Attribute     ; rdfs:label "tool_use_count"    ; upper:datatype xsd:integer .
+claude:FactSession_tokenInputCount a upper:Attribute     ; rdfs:label "token_input_count" ; upper:datatype xsd:integer .
+claude:FactSession_tokenOutputCount a upper:Attribute    ; rdfs:label "token_output_count"; upper:datatype xsd:integer .
+claude:FactSession_turnCount       a upper:Attribute     ; rdfs:label "turn_count"        ; upper:datatype xsd:integer .
+claude:FactSession_costUsd         a upper:Attribute     ; rdfs:label "cost_usd"          ; upper:datatype xsd:decimal .
+claude:FactSession_userKey         a upper:Relationship  ; rdfs:label "user_key"          ; upper:range claude:DimUser ;        rdfs:comment "FK to DimUser." .
+claude:FactSession_deviceKey       a upper:Relationship  ; rdfs:label "device_key"        ; upper:range claude:DimDevice ;      rdfs:comment "FK to DimDevice." .
+claude:FactSession_surfaceKey      a upper:Relationship  ; rdfs:label "surface_key"       ; upper:range claude:DimUserSurface ; rdfs:comment "FK to DimUserSurface." .
+claude:FactSession_modelKey        a upper:Relationship  ; rdfs:label "model_key"         ; upper:range claude:DimModel ;       rdfs:comment "Primary model FK to DimModel." .
+claude:FactSession_startTimeKey    a upper:Relationship  ; rdfs:label "start_time_key"    ; upper:range claude:DimTime ;        rdfs:comment "Role-played FK to DimTime." .
+claude:FactSession_endTimeKey      a upper:Relationship  ; rdfs:label "end_time_key"      ; upper:range claude:DimTime ;        rdfs:comment "Role-played FK to DimTime." ; sh:minCount 0 .
+
+## FactToolUse — grain: one row per tool invocation
+claude:FactToolUse a upper:DirectClass ;
+    rdfs:label "Tool Use Fact" ;
+    rdfs:comment "Grain: one row per tool invocation within a session." ;
+    upper:domainModel claude:ClaudeAnalytics ;
+    upper:key claude:FactToolUse_toolUseKey ;
+    upper:property claude:FactToolUse_toolUseKey ,
+                   claude:FactToolUse_durationMs ,
+                   claude:FactToolUse_inputTokens ,
+                   claude:FactToolUse_outputTokens ,
+                   claude:FactToolUse_isCacheHit ,
+                   claude:FactToolUse_wasApproved ,
+                   claude:FactToolUse_errorOccurred ;
+    upper:relationship claude:FactToolUse_sessionKey ,
+                       claude:FactToolUse_userKey ,
+                       claude:FactToolUse_toolKey ,
+                       claude:FactToolUse_modelKey ,
+                       claude:FactToolUse_timeKey .
+
+claude:FactToolUse_toolUseKey    a upper:Attribute    ; rdfs:label "tool_use_key"    ; upper:datatype xsd:integer ; rdfs:comment "Surrogate key." .
+claude:FactToolUse_durationMs    a upper:Attribute    ; rdfs:label "duration_ms"     ; upper:datatype xsd:integer .
+claude:FactToolUse_inputTokens   a upper:Attribute    ; rdfs:label "input_tokens"    ; upper:datatype xsd:integer .
+claude:FactToolUse_outputTokens  a upper:Attribute    ; rdfs:label "output_tokens"   ; upper:datatype xsd:integer .
+claude:FactToolUse_isCacheHit    a upper:Attribute    ; rdfs:label "is_cache_hit"    ; upper:datatype xsd:boolean .
+claude:FactToolUse_wasApproved   a upper:Attribute    ; rdfs:label "was_approved"    ; upper:datatype xsd:boolean .
+claude:FactToolUse_errorOccurred a upper:Attribute    ; rdfs:label "error_occurred"  ; upper:datatype xsd:boolean .
+claude:FactToolUse_sessionKey    a upper:Relationship ; rdfs:label "session_key"     ; upper:range claude:FactSession ; rdfs:comment "Degenerate FK to FactSession." .
+claude:FactToolUse_userKey       a upper:Relationship ; rdfs:label "user_key"        ; upper:range claude:DimUser .
+claude:FactToolUse_toolKey       a upper:Relationship ; rdfs:label "tool_key"        ; upper:range claude:DimTool .
+claude:FactToolUse_modelKey      a upper:Relationship ; rdfs:label "model_key"       ; upper:range claude:DimModel .
+claude:FactToolUse_timeKey       a upper:Relationship ; rdfs:label "time_key"        ; upper:range claude:DimTime .
+
+## FactMessage — grain: one row per message
+claude:FactMessage a upper:DirectClass ;
+    rdfs:label "Message Fact" ;
+    rdfs:comment "Grain: one row per message in a session conversation." ;
+    upper:domainModel claude:ClaudeAnalytics ;
+    upper:key claude:FactMessage_messageKey ;
+    upper:property claude:FactMessage_messageKey ,
+                   claude:FactMessage_role ,
+                   claude:FactMessage_contentLength ,
+                   claude:FactMessage_tokenCount ,
+                   claude:FactMessage_hasToolUse ,
+                   claude:FactMessage_thinkingTokens ,
+                   claude:FactMessage_cacheCreationTokens ,
+                   claude:FactMessage_cacheReadTokens ;
+    upper:relationship claude:FactMessage_sessionKey ,
+                       claude:FactMessage_userKey ,
+                       claude:FactMessage_modelKey ,
+                       claude:FactMessage_timeKey .
+
+claude:FactMessage_messageKey          a upper:Attribute    ; rdfs:label "message_key"           ; upper:datatype xsd:integer ; rdfs:comment "Surrogate key." .
+claude:FactMessage_role                a upper:Attribute    ; rdfs:label "role"                  ; upper:range claude:MessageRole .
+claude:FactMessage_contentLength       a upper:Attribute    ; rdfs:label "content_length"        ; upper:datatype xsd:integer .
+claude:FactMessage_tokenCount          a upper:Attribute    ; rdfs:label "token_count"           ; upper:datatype xsd:integer .
+claude:FactMessage_hasToolUse          a upper:Attribute    ; rdfs:label "has_tool_use"          ; upper:datatype xsd:boolean .
+claude:FactMessage_thinkingTokens      a upper:Attribute    ; rdfs:label "thinking_tokens"       ; upper:datatype xsd:integer ; sh:minCount 0 .
+claude:FactMessage_cacheCreationTokens a upper:Attribute    ; rdfs:label "cache_creation_tokens" ; upper:datatype xsd:integer ; sh:minCount 0 .
+claude:FactMessage_cacheReadTokens     a upper:Attribute    ; rdfs:label "cache_read_tokens"     ; upper:datatype xsd:integer ; sh:minCount 0 .
+claude:FactMessage_sessionKey          a upper:Relationship ; rdfs:label "session_key"           ; upper:range claude:FactSession .
+claude:FactMessage_userKey             a upper:Relationship ; rdfs:label "user_key"              ; upper:range claude:DimUser .
+claude:FactMessage_modelKey            a upper:Relationship ; rdfs:label "model_key"             ; upper:range claude:DimModel .
+claude:FactMessage_timeKey             a upper:Relationship ; rdfs:label "time_key"              ; upper:range claude:DimTime .

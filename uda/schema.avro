@@ -1,0 +1,220 @@
+{
+  "namespace": "dev.agentwarehouses.claude.analytics",
+  "protocol": "ClaudeAnalytics",
+  "doc": "Data Mesh Avro projection of the Claude-UDA star schema. Transpiled from domain_model.ttl following Netflix UDA conventions. Each record carries udaUri linking it to the ontology; pk marks primary keys.",
+
+  "types": [
+    {
+      "type": "enum",
+      "name": "CLAUDE_PlanTier",
+      "doc": "Subscription tier for a Claude Code user.",
+      "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#PlanTier",
+      "symbols": ["FREE", "PRO", "TEAM", "ENTERPRISE", "MAX"]
+    },
+    {
+      "type": "enum",
+      "name": "CLAUDE_SurfaceType",
+      "doc": "Client surface through which a user interacts with Claude Code.",
+      "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#SurfaceType",
+      "symbols": ["CLI", "VSCODE", "JETBRAINS", "WEB", "DESKTOP_MAC", "DESKTOP_WINDOWS"]
+    },
+    {
+      "type": "enum",
+      "name": "CLAUDE_ModelFamily",
+      "doc": "Claude model family tier.",
+      "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#ModelFamily",
+      "symbols": ["OPUS", "SONNET", "HAIKU"]
+    },
+    {
+      "type": "enum",
+      "name": "CLAUDE_ToolCategory",
+      "doc": "Functional category of a tool invocation.",
+      "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#ToolCategory",
+      "symbols": ["READ", "WRITE", "EDIT", "BASH", "SEARCH", "AGENT", "MCP", "OTHER"]
+    },
+    {
+      "type": "enum",
+      "name": "CLAUDE_MessageRole",
+      "doc": "Role of a message in a conversation turn.",
+      "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#MessageRole",
+      "symbols": ["USER", "ASSISTANT", "SYSTEM", "TOOL"]
+    },
+    {
+      "type": "enum",
+      "name": "CLAUDE_SessionStatus",
+      "doc": "Terminal state of a Claude Code session.",
+      "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#SessionStatus",
+      "symbols": ["ACTIVE", "COMPLETED", "ABANDONED", "ERRORED", "COMPACTED"]
+    },
+    {
+      "type": "enum",
+      "name": "CLAUDE_DeviceOS",
+      "doc": "Operating system family of the client device.",
+      "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DeviceOS",
+      "symbols": ["MACOS", "LINUX", "WINDOWS", "CHROMEOS"]
+    },
+
+    {
+      "type": "record",
+      "name": "CLAUDE_DimUser",
+      "doc": "Type 2 SCD tracking user attribute changes over time.",
+      "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimUser",
+      "fields": [
+        {"name": "CLAUDE_user_key",       "type": "int",    "pk": true,  "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimUser_userKey"},
+        {"name": "CLAUDE_user_id",        "type": "string",              "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimUser_userId"},
+        {"name": "CLAUDE_email",          "type": "string",              "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimUser_email"},
+        {"name": "CLAUDE_plan_tier",      "type": "CLAUDE_PlanTier",     "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimUser_planTier"},
+        {"name": "CLAUDE_org_id",         "type": ["null", "string"],    "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimUser_orgId", "default": null},
+        {"name": "CLAUDE_org_name",       "type": ["null", "string"],    "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimUser_orgName", "default": null},
+        {"name": "CLAUDE_effective_from", "type": {"type": "long", "logicalType": "timestamp-millis"}, "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimUser_effectiveFrom"},
+        {"name": "CLAUDE_effective_to",   "type": ["null", {"type": "long", "logicalType": "timestamp-millis"}], "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimUser_effectiveTo", "default": null},
+        {"name": "CLAUDE_is_current",     "type": "boolean",             "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimUser_isCurrent"}
+      ]
+    },
+
+    {
+      "type": "record",
+      "name": "CLAUDE_DimDevice",
+      "doc": "Physical or virtual device from which sessions originate.",
+      "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimDevice",
+      "fields": [
+        {"name": "CLAUDE_device_key", "type": "int",    "pk": true,  "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimDevice_deviceKey"},
+        {"name": "CLAUDE_device_id",  "type": "string",              "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimDevice_deviceId"},
+        {"name": "CLAUDE_os",         "type": "CLAUDE_DeviceOS",     "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimDevice_os"},
+        {"name": "CLAUDE_os_version", "type": "string",              "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimDevice_osVersion"},
+        {"name": "CLAUDE_arch",       "type": "string",              "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimDevice_arch"},
+        {"name": "CLAUDE_cpu_cores",  "type": ["null", "int"],       "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimDevice_cpuCores", "default": null},
+        {"name": "CLAUDE_memory_gb",  "type": ["null", "double"],    "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimDevice_memoryGb", "default": null}
+      ]
+    },
+
+    {
+      "type": "record",
+      "name": "CLAUDE_DimUserSurface",
+      "doc": "Client surface (CLI, IDE extension, web, desktop app) and its version.",
+      "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimUserSurface",
+      "fields": [
+        {"name": "CLAUDE_surface_key",       "type": "int",    "pk": true,  "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimUserSurface_surfaceKey"},
+        {"name": "CLAUDE_surface_type",      "type": "CLAUDE_SurfaceType", "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimUserSurface_surfaceType"},
+        {"name": "CLAUDE_surface_version",   "type": "string",              "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimUserSurface_surfaceVersion"},
+        {"name": "CLAUDE_extension_version", "type": ["null", "string"],    "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimUserSurface_extensionVersion", "default": null}
+      ]
+    },
+
+    {
+      "type": "record",
+      "name": "CLAUDE_DimModel",
+      "doc": "Claude model used for inference in a session or tool call.",
+      "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimModel",
+      "fields": [
+        {"name": "CLAUDE_model_key",          "type": "int",    "pk": true,  "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimModel_modelKey"},
+        {"name": "CLAUDE_model_id",           "type": "string",              "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimModel_modelId"},
+        {"name": "CLAUDE_model_family",       "type": "CLAUDE_ModelFamily",  "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimModel_modelFamily"},
+        {"name": "CLAUDE_context_window",     "type": "int",                 "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimModel_contextWindow"},
+        {"name": "CLAUDE_max_output_tokens",  "type": "int",                 "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimModel_maxOutputTokens"},
+        {"name": "CLAUDE_supports_thinking",  "type": "boolean",             "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimModel_supportsThinking"}
+      ]
+    },
+
+    {
+      "type": "record",
+      "name": "CLAUDE_DimTime",
+      "doc": "Conformed date-time dimension at minute grain.",
+      "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTime",
+      "fields": [
+        {"name": "CLAUDE_time_key",      "type": "int",     "pk": true,  "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTime_timeKey"},
+        {"name": "CLAUDE_full_datetime", "type": {"type": "long", "logicalType": "timestamp-millis"}, "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTime_fullDatetime"},
+        {"name": "CLAUDE_date",          "type": {"type": "int", "logicalType": "date"},              "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTime_date"},
+        {"name": "CLAUDE_year",          "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTime_year"},
+        {"name": "CLAUDE_quarter",       "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTime_quarter"},
+        {"name": "CLAUDE_month",         "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTime_month"},
+        {"name": "CLAUDE_day",           "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTime_day"},
+        {"name": "CLAUDE_hour",          "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTime_hour"},
+        {"name": "CLAUDE_minute",        "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTime_minute"},
+        {"name": "CLAUDE_day_of_week",   "type": "string",               "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTime_dayOfWeek"},
+        {"name": "CLAUDE_is_weekend",    "type": "boolean",              "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTime_isWeekend"}
+      ]
+    },
+
+    {
+      "type": "record",
+      "name": "CLAUDE_DimTool",
+      "doc": "Tool available to Claude Code, including built-in tools and MCP server tools.",
+      "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTool",
+      "fields": [
+        {"name": "CLAUDE_tool_key",        "type": "int",    "pk": true,  "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTool_toolKey"},
+        {"name": "CLAUDE_tool_name",       "type": "string",              "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTool_toolName"},
+        {"name": "CLAUDE_tool_category",   "type": "CLAUDE_ToolCategory", "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTool_toolCategory"},
+        {"name": "CLAUDE_is_mcp",          "type": "boolean",             "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTool_isMcp"},
+        {"name": "CLAUDE_mcp_server_name", "type": ["null", "string"],    "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#DimTool_mcpServerName", "default": null}
+      ]
+    },
+
+    {
+      "type": "record",
+      "name": "CLAUDE_FactSession",
+      "doc": "Grain: one row per Claude Code session. Accumulating snapshot.",
+      "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactSession",
+      "fields": [
+        {"name": "CLAUDE_session_key",        "type": "int",    "pk": true,  "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactSession_sessionKey"},
+        {"name": "CLAUDE_session_id",         "type": "string",              "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactSession_sessionId"},
+        {"name": "CLAUDE_status",             "type": "CLAUDE_SessionStatus","udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactSession_status"},
+        {"name": "CLAUDE_user_key",           "type": "int",                 "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactSession_userKey",      "doc": "FK to DimUser"},
+        {"name": "CLAUDE_device_key",         "type": "int",                 "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactSession_deviceKey",    "doc": "FK to DimDevice"},
+        {"name": "CLAUDE_surface_key",        "type": "int",                 "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactSession_surfaceKey",   "doc": "FK to DimUserSurface"},
+        {"name": "CLAUDE_model_key",          "type": "int",                 "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactSession_modelKey",     "doc": "FK to DimModel"},
+        {"name": "CLAUDE_start_time_key",     "type": "int",                 "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactSession_startTimeKey", "doc": "Role-played FK to DimTime"},
+        {"name": "CLAUDE_end_time_key",       "type": ["null", "int"],       "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactSession_endTimeKey",   "doc": "Role-played FK to DimTime", "default": null},
+        {"name": "CLAUDE_duration_seconds",   "type": "double",              "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactSession_durationSeconds"},
+        {"name": "CLAUDE_message_count",      "type": "int",                 "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactSession_messageCount"},
+        {"name": "CLAUDE_tool_use_count",     "type": "int",                 "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactSession_toolUseCount"},
+        {"name": "CLAUDE_token_input_count",  "type": "int",                 "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactSession_tokenInputCount"},
+        {"name": "CLAUDE_token_output_count", "type": "int",                 "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactSession_tokenOutputCount"},
+        {"name": "CLAUDE_turn_count",         "type": "int",                 "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactSession_turnCount"},
+        {"name": "CLAUDE_cost_usd",           "type": "double",              "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactSession_costUsd"}
+      ]
+    },
+
+    {
+      "type": "record",
+      "name": "CLAUDE_FactToolUse",
+      "doc": "Grain: one row per tool invocation within a session.",
+      "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse",
+      "fields": [
+        {"name": "CLAUDE_tool_use_key",   "type": "int",     "pk": true,  "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_toolUseKey"},
+        {"name": "CLAUDE_session_key",    "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_sessionKey",  "doc": "FK to FactSession"},
+        {"name": "CLAUDE_user_key",       "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_userKey",     "doc": "FK to DimUser"},
+        {"name": "CLAUDE_tool_key",       "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_toolKey",     "doc": "FK to DimTool"},
+        {"name": "CLAUDE_model_key",      "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_modelKey",    "doc": "FK to DimModel"},
+        {"name": "CLAUDE_time_key",       "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_timeKey",     "doc": "FK to DimTime"},
+        {"name": "CLAUDE_duration_ms",    "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_durationMs"},
+        {"name": "CLAUDE_input_tokens",   "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_inputTokens"},
+        {"name": "CLAUDE_output_tokens",  "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_outputTokens"},
+        {"name": "CLAUDE_is_cache_hit",   "type": "boolean",               "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_isCacheHit"},
+        {"name": "CLAUDE_was_approved",   "type": "boolean",               "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_wasApproved"},
+        {"name": "CLAUDE_error_occurred", "type": "boolean",               "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactToolUse_errorOccurred"}
+      ]
+    },
+
+    {
+      "type": "record",
+      "name": "CLAUDE_FactMessage",
+      "doc": "Grain: one row per message in a session conversation.",
+      "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactMessage",
+      "fields": [
+        {"name": "CLAUDE_message_key",          "type": "int",     "pk": true,  "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_messageKey"},
+        {"name": "CLAUDE_session_key",          "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_sessionKey", "doc": "FK to FactSession"},
+        {"name": "CLAUDE_user_key",             "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_userKey",    "doc": "FK to DimUser"},
+        {"name": "CLAUDE_model_key",            "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_modelKey",   "doc": "FK to DimModel"},
+        {"name": "CLAUDE_time_key",             "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_timeKey",    "doc": "FK to DimTime"},
+        {"name": "CLAUDE_role",                 "type": "CLAUDE_MessageRole",    "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_role"},
+        {"name": "CLAUDE_content_length",       "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_contentLength"},
+        {"name": "CLAUDE_token_count",          "type": "int",                   "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_tokenCount"},
+        {"name": "CLAUDE_has_tool_use",         "type": "boolean",               "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_hasToolUse"},
+        {"name": "CLAUDE_thinking_tokens",      "type": ["null", "int"],         "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_thinkingTokens", "default": null},
+        {"name": "CLAUDE_cache_creation_tokens","type": ["null", "int"],         "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_cacheCreationTokens", "default": null},
+        {"name": "CLAUDE_cache_read_tokens",    "type": ["null", "int"],         "udaUri": "https://rdf.agentwarehouses.dev/onto/claude#FactMessage_cacheReadTokens", "default": null}
+      ]
+    }
+  ]
+}
